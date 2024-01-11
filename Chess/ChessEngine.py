@@ -1,3 +1,5 @@
+import os
+import pygame
 import numpy as np
 
 
@@ -30,3 +32,96 @@ class GameState():
 
         self.white_to_move = True
         self.move_log = []
+
+
+class Move():
+    ranks_to_row = {
+        "1": 7,
+        "2": 6,
+        "3": 5,
+        "4": 4,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 0,
+    }
+    row_to_rank = {
+        value: key
+        for key, value in ranks_to_row.items()
+    }
+
+    files_to_cols = {
+        "a": 0,
+        "b": 1,
+        "c": 2,
+        "d": 3,
+        "e": 4,
+        "f": 5,
+        "g": 6,
+        "h": 7,
+    }
+    cols_to_files = {
+        value: key
+        for key, value in files_to_cols.items()
+    }
+
+    def __init__(self, start_square: tuple, end_square: tuple, board: np.ndarray) -> None:
+        """
+        Initializes an instance of the class.
+
+        Parameters:
+            start_square (tuple): The starting square coordinates (row, column).
+            end_square (tuple): The ending square coordinates (row, column).
+            board (np.ndarray): The game board.
+
+        Returns:
+            None
+        """
+        self.start_row = start_square[0]
+        self.start_col = start_square[1]
+
+        self.end_row = end_square[0]
+        self.end_col = end_square[1]
+
+        self.piece_moved = board[self.start_row][self.start_col]
+        self.piece_captured = board[self.end_row][self.end_col]
+
+
+class Color:
+    def __init__(self, light, dark):
+        self.light = light
+        self.dark = dark
+
+
+class Theme:
+    def __init__(self, light_bg, dark_bg,
+                 light_trace, dark_trace,
+                 light_moves, dark_moves):
+        self.bg = Color(light_bg, dark_bg)
+        self.trace = Color(light_trace, dark_trace)
+        self.moves = Color(light_moves, dark_moves)
+
+
+class Config():
+    def __init__(self) -> None:
+        self.themes = []
+        self._add_themes()
+        self.idx = 0
+        self.theme = self.themes[self.idx]
+
+    def change_theme(self):
+        self.idx += 1
+        self.idx %= len(self.themes)
+        self.theme = self.themes[self.idx]
+
+    def _add_themes(self):
+        green = Theme((234, 235, 200), (119, 154, 88), (244, 247,
+                      116), (172, 195, 51), '#C86464', '#C84646')
+        brown = Theme((235, 209, 166), (165, 117, 80), (245, 234,
+                      100), (209, 185, 59), '#C86464', '#C84646')
+        blue = Theme((229, 228, 200), (60, 95, 135), (123, 187,
+                     227), (43, 119, 191), '#C86464', '#C84646')
+        gray = Theme((120, 119, 118), (86, 85, 84), (99, 126, 143),
+                     (82, 102, 128), '#C86464', '#C84646')
+
+        self.themes = [green, brown, blue, gray]

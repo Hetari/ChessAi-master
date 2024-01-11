@@ -37,8 +37,8 @@ def draw_game_state(screen: p.Surface, game_state: ChessEngine.GameState) -> Non
     Returns:
         None
     """
-    draw_board(screen)  # draw squares on the board
-    # draw pieces on top of those squares
+    draw_board(screen)
+    draw_board_notations(screen)
     draw_pieces(screen, game_state.board)
 
     # TODO: draw move log
@@ -55,7 +55,7 @@ def draw_board(screen: p.Surface) -> None:
     Returns:
         None
     """
-    colors = [p.Color("white"), p.Color("gray")]
+    colors = [p.Color(config.theme.bg.light), p.Color(config.theme.bg.dark)]
 
     for row in range(ROWS):
         for col in range(COLS):
@@ -75,6 +75,32 @@ def draw_board(screen: p.Surface) -> None:
                     SQ_SIZE          # The height of the rectangle
                 )
             )
+
+
+def draw_board_notations(screen: p.Surface) -> None:
+    font = p.font.Font(None, 20)  # None for pygame default font, size 30
+
+    ranks = ['8', '7', '6', '5', '4', '3', '2', '1']
+    files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    colors = [
+        p.Color(config.theme.bg.dark),
+        p.Color(config.theme.bg.light),
+    ]
+
+    for i in range(8):
+        color = colors[i % 2]
+
+        # Draw rank notations
+        notation = font.render(ranks[i], True, p.Color(color))
+        screen.blit(notation, (5, i * SQ_SIZE +
+                    notation.get_width()))
+
+        color = colors[(i + 1) % 2]
+
+        # Draw file notations
+        notation = font.render(files[i], True, p.Color(color))
+        screen.blit(notation, (i * SQ_SIZE + SQ_SIZE -
+                    notation.get_width() - 5, HEIGHT - 15))
 
 
 def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
@@ -133,8 +159,14 @@ def main() -> None:
     player_clicks = []
     while running:
         for event in p.event.get():
+            # changing themes
+            if event.type == p.KEYDOWN:
+                if event.key == p.K_t:
+                    config.change_theme()
+
             if event.type == p.QUIT:
                 running = False
+
             # mouse handler
             elif event.type == p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()  # (x, y)
