@@ -161,8 +161,10 @@ def main() -> None:
         for event in p.event.get():
             # changing themes
             if event.type == p.KEYDOWN:
-                if event.key == p.K_t:
+                if event.key == p.K_k:
                     config.change_theme()
+                elif event.key == p.K_ESCAPE or event.key == p.K_q:
+                    running = False
 
             if event.type == p.QUIT:
                 running = False
