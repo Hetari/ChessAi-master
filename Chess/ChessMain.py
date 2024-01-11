@@ -78,7 +78,23 @@ def draw_board(screen: p.Surface) -> None:
 
 
 def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
-    pass
+    """
+    Draw the pieces on the board.
+
+    Args:
+        screen (p.Surface): The surface object representing the screen to draw on.
+        board (np.ndarray): The current board state.
+
+    Returns:
+        None
+    """
+    for row in range(ROWS):
+        for col in range(COLS):
+            piece = board[row][col]
+            if piece != 0:
+                screen.blit(IMAGES[piece], p.Rect(
+                    col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+                ))
 
 
 def main() -> None:
