@@ -1,12 +1,7 @@
+from const import *
 import ChessEngine
 import pygame as p
 import numpy as np
-
-WIDTH = HEIGHT = 800  # 400 is another option
-DIMENSION = 8  # dimension is 8*8
-SQ_SIZE = HEIGHT // DIMENSION
-MAX_FPS = 15  # for animation
-IMAGES = {}
 
 
 def load_images() -> None:
@@ -62,8 +57,8 @@ def draw_board(screen: p.Surface) -> None:
     """
     colors = [p.Color("white"), p.Color("gray")]
 
-    for row in range(DIMENSION):
-        for col in range(DIMENSION):
+    for row in range(ROWS):
+        for col in range(COLS):
             # Determine the color of the square based on its position where (col + row) % 2) is 0 or 1, in other words:
             # if we are on (0, 0) -> 0 + 0 = 0 -> 0 % 2 = 0 (even number so the color is white)
             # or if we are on (0, 1) so 0 + 1 = 1 and 1 % 2 = 1 (odd number so the color is gray)
