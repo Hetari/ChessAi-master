@@ -1,5 +1,6 @@
 from const import *
 import ChessEngine
+import Move
 import pygame as p
 import numpy as np
 
@@ -185,8 +186,13 @@ def main() -> None:
                     player_clicks.append(square_selected)
 
                 if len(player_clicks) == 2:
-                    # TODO Move class
-                    pass
+                    move = Move.Move(
+                        player_clicks[0], player_clicks[1], game_state.board)
+                    print(move.get_chess_notation())
+                    game_state.make_move(move)
+
+                    square_selected = ()
+                    player_clicks = []
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
