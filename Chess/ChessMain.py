@@ -127,10 +127,32 @@ def main() -> None:
 
     load_images()  # do this only once, before the while loop
     running = True
+    # keep track of last click
+    square_selected = ()
+    # keep track of player clicks (two tuples: [(6, 4), (4, 4)])
+    player_clicks = []
     while running:
         for event in p.event.get():
             if event.type == p.QUIT:
                 running = False
+            # mouse handler
+            elif event.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()  # (x, y)
+                row = location[1] // SQ_SIZE
+                col = location[0] // SQ_SIZE
+
+                # user clicked the same square twice, unselect
+                if square_selected == (row, col):
+                    square_selected = ()
+                    player_clicks = []
+
+                else:
+                    square_selected = (row, col)
+                    player_clicks.append(square_selected)
+
+                if len(player_clicks) == 2:
+                    # TODO Move class
+                    pass
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
