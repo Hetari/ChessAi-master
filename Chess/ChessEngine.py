@@ -33,13 +33,16 @@ class GameState():
         self.move_log = []
 
     def make_move(self, move: Move) -> None:
-        # make the piece location empty
+        # Make the piece location empty
         self.board[move.start_row][move.start_col] = 0
 
-        # move the piece to the ending location
+        # Move the piece to the new location
         self.board[move.end_row][move.end_col] = move.piece_moved
 
+        # Add the new move to the log
         self.move_log.append(move)
+
+        # Toggle the order of moves
         self.white_to_move = not self.white_to_move
 
 

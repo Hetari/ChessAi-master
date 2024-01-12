@@ -188,7 +188,6 @@ def main() -> None:
                 if len(player_clicks) == 2:
                     move = Move.Move(
                         player_clicks[0], player_clicks[1], game_state.board)
-                    print(move.get_chess_notation())
                     game_state.make_move(move)
 
                     square_selected = ()

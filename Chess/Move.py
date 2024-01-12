@@ -45,14 +45,18 @@ class Move:
     }
 
     def __init__(self, start_square: tuple, end_square: tuple, board: np.ndarray) -> None:
-
+        # From
         self.start_row = start_square[0]
         self.start_col = start_square[1]
 
+        # To:
         self.end_row = end_square[0]
         self.end_col = end_square[1]
 
+        # What is moving?
         self.piece_moved = board[self.start_row][self.start_col]
+
+        # The moving piece eat this:
         self.piece_captured = board[self.end_row][self.end_col]
 
     def get_chess_notation(self) -> str:
