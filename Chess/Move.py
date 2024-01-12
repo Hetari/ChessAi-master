@@ -14,14 +14,15 @@ class Move:
             None
         """
     ranks_to_row = {
-        "1": 7,
-        "2": 6,
-        "3": 5,
-        "4": 4,
-        "5": 3,
-        "6": 2,
-        "7": 1,
-        "8": 0,
+        0: 8,
+        1: 7,
+        2: 6,
+        3: 5,
+        4: 4,
+        5: 3,
+        6: 2,
+        7: 1,
+        8: 0,
     }
     row_to_rank = {
         value: key
@@ -75,4 +76,4 @@ class Move:
         Returns:
             Tuple[str, int]: The rank and file of the position.
         """
-        return self.cols_to_files[col], self.ranks_to_row[str(row)]
+        return self.cols_to_files[col], self.ranks_to_row[row]
