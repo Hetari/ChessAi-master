@@ -21,10 +21,11 @@ def load_images() -> None:
     Returns:
         `None`
     """
-    # note: we can access an image by saying "IMAGES[1]"
+    # Note: we reduce the size of the images by -20 to make them smaller
+    # (goto draw_pieces function to see how we make the pieces in the center)
     for piece in range(1, 13):
         IMAGES[piece] = p.transform.scale(p.image.load(
-            f'./Chess/images/{piece}.png'), (SQ_SIZE, SQ_SIZE))
+            f'./Chess/images/{piece}.png'), (SQ_SIZE - 20, SQ_SIZE - 20))
 
 
 def draw_game_state(screen: p.Surface, game_state: ChessEngine.GameState) -> None:
@@ -79,6 +80,15 @@ def draw_board(screen: p.Surface) -> None:
 
 
 def draw_board_notations(screen: p.Surface) -> None:
+    """
+    Draws the board notations on the screen.
+
+    Args:
+        screen (pygame.Surface): The surface on which the notations are drawn.
+
+    Returns:
+        None
+    """
     font = p.font.Font(None, 20)  # None for pygame default font, size 30
 
     ranks = ['8', '7', '6', '5', '4', '3', '2', '1']
@@ -119,8 +129,9 @@ def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
         for col in range(COLS):
             piece = board[row][col]
             if piece != 0:
+                # Here we add 10 to the x and 10 to the y (10 + 10 = 20) coordinates to center the piece on the square
                 screen.blit(IMAGES[piece], p.Rect(
-                    col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+                    col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
                 ))
 
 
@@ -190,6 +201,7 @@ def main() -> None:
                         player_clicks[0], player_clicks[1], game_state.board)
                     game_state.make_move(move)
 
+                    # After the piece moved, unselect it.
                     square_selected = ()
                     player_clicks = []
 
