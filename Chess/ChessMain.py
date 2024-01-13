@@ -171,12 +171,15 @@ def main() -> None:
     player_clicks = []
     while running:
         for event in p.event.get():
-            # changing themes
             if event.type == p.KEYDOWN:
+                # changing themes
                 if event.key == p.K_k:
                     config.change_theme()
                 elif event.key == p.K_ESCAPE or event.key == p.K_q:
                     running = False
+
+                elif event.key == p.K_z:
+                    game_state.undo_move()
 
             if event.type == p.QUIT:
                 running = False

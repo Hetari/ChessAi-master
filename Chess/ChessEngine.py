@@ -45,6 +45,13 @@ class GameState():
         # Toggle the order of moves
         self.white_to_move = not self.white_to_move
 
+    def undo_move(self):
+        if len(self.move_log) == 0:
+            return
+        move = self.move_log.pop()
+        self.board[move.start_row][move.start_col] = move.piece_moved
+        self.board[move.end_row][move.end_col] = move.piece_captured
+
 
 class Color:
     def __init__(self, light, dark):
