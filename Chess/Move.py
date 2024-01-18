@@ -59,6 +59,10 @@ class Move:
         # The moving piece eat this:
         self.piece_captured = board[self.end_row][self.end_col]
 
+        # Id
+        self.move_id = self.start_row * 1000 + self.start_col * \
+            100 + self.end_row * 10 + self.end_col
+
     def get_chess_notation(self) -> str:
         """
         Get the chess notation for the start and end positions of the chess piece.
@@ -81,3 +85,6 @@ class Move:
             Tuple[str, int]: The rank and file of the position.
         """
         return self.cols_to_files[col], self.ranks_to_row[row]
+
+    def __eq__(self, other: object) -> bool:
+        return self.move_id == other.move_id if isinstance(other, Move) else False

@@ -46,11 +46,92 @@ class GameState():
         self.white_to_move = not self.white_to_move
 
     def undo_move(self):
+        """
+        Undo the last move made in the game.
+
+        This function removes the last move from the move log and updates the board accordingly. If there are no moves in the move log, the function returns without making any changes to the game state.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         if len(self.move_log) == 0:
             return
         move = self.move_log.pop()
         self.board[move.start_row][move.start_col] = move.piece_moved
         self.board[move.end_row][move.end_col] = move.piece_captured
+
+    def get_valid_moves(self):
+        return self.get_all_possible_moves()
+
+    def get_all_possible_moves(self):
+        """
+        Get all possible and valid moves for the current state of the game.
+
+        Returns:
+            list[Move]: A list of all possible and valid moves.
+        """
+        moves = [Move.Move((6, 4), (4, 4), self.board)]
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+                piece = self.board[row][col]
+
+                # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
+
+                # piece in range(7, 13) and
+                if self.white_to_move:
+                    if piece == 12:
+                        self.get_pawn_moves(row, col, moves)
+                    # elif piece == 11:
+                    #     self.get_king_moves(row, col, moves)
+                    # elif piece == 10:
+                    #     self.get_queen_moves(row, col, moves)
+                    # elif piece == 9:
+                    #     self.get_bishop_moves(row, col, moves)
+                    # elif piece == 8:
+                    #     self.get_knight_moves(row, col, moves)
+                    # elif piece == 7:
+                    #     self.get_rook_moves(row, col, moves)
+                else:
+                    # if piece == 1:
+                    #     self.get_rook_moves(row, col, moves)
+                    # elif piece == 2:
+                    #     self.get_knight_moves(row, col, moves)
+                    # elif piece == 3:
+                    #     self.get_bishop_moves(row, col, moves)
+                    # elif piece == 4:
+                    #     self.get_queen_moves(row, col, moves)
+                    # elif piece == 5:
+                    #     self.get_king_moves(row, col, moves)
+                    if piece == 6:
+                        self.get_pawn_moves(row, col, moves)
+        # piece = self.board[row][col]
+        #         move_functions = {
+        #             1: self.get_rook_moves,
+        #             2: self.get_knight_moves,
+        #             3: self.get_bishop_moves,
+        #             4: self.get_queen_moves,
+        #             5: self.get_king_moves,
+        #             6: self.get_pawn_moves,
+        #             7: self.get_rook_moves,
+        #             8: self.get_knight_moves,
+        #             9: self.get_bishop_moves,
+        #             10: self.get_queen_moves,
+        #             11: self.get_king_moves,
+        #             12: self.get_pawn_moves,
+        #         }
+
+        #     valid_pieces = range(7, 13) if self.white_to_move else range(1, 7)
+
+        #     # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
+        #     if piece in valid_pieces:
+        #         move_functions[piece](row, col, moves)
+        return moves
+
+    def get_pawn_moves(self, row, col, moves):
+        pass
 
 
 class Color:
