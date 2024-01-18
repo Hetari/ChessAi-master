@@ -135,27 +135,7 @@ def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
                 ))
 
 
-def main() -> None:
-    """
-    ### Main function
-
-    This function initializes Pygame and sets up the game loop. The game loop
-    consists of the following steps:
-
-    1. Initialize the game state
-    2. Handle events
-    3. Update the game state
-    4. Draw the game state
-    5. Update the display
-    6. Limit the game speed
-
-    Parameters:
-        `None`
-
-    Returns:
-        `None`
-    """
-
+def main():
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -182,11 +162,9 @@ def main() -> None:
                 if event.key == p.K_k:
                     config.change_theme()
 
-                # exit the game
-                elif event.key == p.K_ESCAPE or event.key == p.K_q:
+                elif event.key in [p.K_ESCAPE, p.K_q]:
                     running = False
 
-                # undo last move
                 elif event.key == p.K_z:
                     game_state.undo_move()
                     move_flag = True
