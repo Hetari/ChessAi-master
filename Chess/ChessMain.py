@@ -98,7 +98,7 @@ def draw_board_notations(screen: p.Surface) -> None:
         p.Color(config.theme.bg.light),
     ]
 
-    for i in range(8):
+    for i in range(COLS):
         color = colors[i % 2]
 
         # Draw rank notations
