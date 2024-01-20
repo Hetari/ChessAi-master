@@ -3,45 +3,67 @@ import ChessEngine
 import Move
 import Board
 import pygame as p
-import numpy as np
 
 
-def handle_key_events(event, game_state, flags):
-    # changing themes
+def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool]) -> None:
+    """
+    Handle key events in the game, where q or escape is quit, z is undo, and k is change theme.
+    """
     if event.key == p.K_k:
-        config.change_theme()
-
+        game_state.config.change_theme()
     elif event.key in [p.K_ESCAPE, p.K_q]:
         flags["running"] = False
-
     elif event.key == p.K_z:
         game_state.undo_move()
         flags["move_flag"] = True
 
 
-def get_square_and_clicks(p):
-    location = p.mouse.get_pos()
+def get_square_and_clicks(position: p.mouse) -> tuple[int, int]:
+    """
+    Return the square and clicks based on the given position.
+
+    :param position: The position to calculate the square and clicks from.
+    :return: Tuple of square and clicks.
+    """
+    location = position
     return location[1] // SQ_SIZE, location[0] // SQ_SIZE
 
 
-def handle_mouse_events(square_selected, player_clicks, game_state, valid_moves, flags):
-    global p
-    row, col = get_square_and_clicks(p)
+def handle_mouse_events(square_selected: tuple[int, int], player_clicks: list[tuple[int, int]], game_state: ChessEngine.GameState, valid_moves: list[Move.Move], flags: bool):
+    """
+    Handle mouse events and update game state based on player clicks.
 
+    Args:
+        square_selected (tuple): The currently selected square.
+        player_clicks (list): List of player's clicks.
+        game_state (GameState): The current state of the game.
+        valid_moves (list): List of valid moves.
+        flags (dict): Dictionary of flags.
+
+    Returns:
+        tuple: Updated square_selected.
+        list: Updated player_clicks.
+    """
+    # Get the row and column of the square clicked by the player
+    row, col = get_square_and_clicks()
+
+    # If the same square is clicked twice, reset the selected square and clear player clicks
     if square_selected == (row, col):
         square_selected, player_clicks = (), []
-
     else:
+        # If a different square is clicked, update the selected square and append it to player clicks
         square_selected = (row, col)
         player_clicks.append(square_selected)
 
+    # If the player has made two clicks
     if len(player_clicks) == 2:
+        # Create a Move object using the player clicks and check if it's a valid move
         move = Move.Move(player_clicks[0], player_clicks[1], game_state.board)
-
         if move in valid_moves:
+            # If it's a valid move, make the move in the game state and set the move flag
             game_state.make_move(move)
             flags["move_flag"] = True
-
+        # Reset the selected square and clear player clicks
         square_selected, player_clicks = (), []
 
     return square_selected, player_clicks

@@ -1,5 +1,7 @@
 import numpy as np
 import Move
+import pygame as p
+from const import *
 
 
 class GameState():
