@@ -52,13 +52,15 @@ class Board():
         Draw the squares on the board.
 
         Args:
-            screen (p.Surface): The surface object representing the screen to draw on.
+            screen (p.Surface): The screen surface to draw on.
 
         Returns:
             None
         """
-        colors = [p.Color(config.theme.bg.light),
-                  p.Color(config.theme.bg.dark)]
+        colors = [
+            p.Color(config.theme.bg.light),
+            p.Color(config.theme.bg.dark)
+        ]
 
         for row in range(ROWS):
             for col in range(COLS):
@@ -79,8 +81,8 @@ class Board():
                     )
                 )
 
-    @staticmethod
-    def draw_board_notations(screen: p.Surface) -> None:
+    # @staticmethod
+    def draw_board_notations(self, screen: p.Surface) -> None:
         """
         Draws the board notations on the screen.
 
@@ -103,16 +105,26 @@ class Board():
             color = colors[i % 2]
 
             # Draw rank notations
-            notation = font.render(ranks[i], True, p.Color(color))
-            screen.blit(notation, (5, i * SQ_SIZE +
-                        notation.get_width()))
+            self.draw_rank_notations(screen, font, ranks, color, i)
 
             color = colors[(i + 1) % 2]
 
             # Draw file notations
-            notation = font.render(files[i], True, p.Color(color))
-            screen.blit(notation, (i * SQ_SIZE + SQ_SIZE -
-                        notation.get_width() - 5, HEIGHT - 15))
+            self.draw_file_notations(
+                screen, font, files, color, i)
+
+    @staticmethod
+    def draw_rank_notations(screen, font, ranks, color, i):
+        # for i in range(COLS):
+        notation = font.render(ranks[i], True, p.Color(color))
+        screen.blit(notation, (5, i * SQ_SIZE + notation.get_width()))
+
+    @staticmethod
+    def draw_file_notations(screen, font, files, color, i):
+        # for i in range(COLS):
+        notation = font.render(files[i], True, p.Color(color))
+        screen.blit(notation, (i * SQ_SIZE + SQ_SIZE -
+                    notation.get_width() - 5, HEIGHT - 15))
 
     @staticmethod
     def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
