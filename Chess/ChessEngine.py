@@ -1,7 +1,6 @@
 import numpy as np
 import Move
 import pygame as p
-from const import *
 
 
 class GameState():
@@ -26,10 +25,16 @@ class GameState():
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 6, 0, 0, 0, 0, 0],
             [12, 12, 12, 12, 12, 12, 12, 12],
             [7, 8, 9, 10, 11, 9, 8, 7],
         ], dtype=np.int8)
+
+        # Get the possible moves for each piece
+        self.move_functions = {
+            6: self.get_pawn_moves,
+            12: self.get_pawn_moves
+        }
 
         self.white_to_move = True
         self.move_log = []
@@ -83,13 +88,9 @@ class GameState():
                 # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
 
                 # piece in range(7, 13) and
-                if (self.white_to_move and piece in range(7, 13)) or (not self.white_to_move and piece in range(1, 7)):
-                    if piece in [6, 12]:
-                        self.get_pawn_moves(row, col, moves)
-
-                    if piece in [1, 7]:
-                        ...
-                        # self.get_rook_moves(row, col, moves)
+                if piece in range(13):
+                    self.move_functions.get(
+                        piece, lambda *_: None)(row, col, moves)
         return moves
 
     def get_pawn_moves(self, row, col, moves):
@@ -100,6 +101,13 @@ class GameState():
                 if row == 6 and self.board[row - 2][col] == 0:
                     moves.append(
                         Move.Move((row, col), (row - 2, col), self.board))
+            if col >= 1 and self.board[row - 1][col - 1] < len(self.board[row]):
+                moves.append(Move.Move(
+                    (row, col), (row - 1, col - 1), self.board))
+
+            if col + 1 < len(self.board[row]) and self.board[row - 1][col + 1] < len(self.board[row]):
+                moves.append(Move.Move(
+                    (row, col), (row - 1, col + 1), self.board))
 
         elif self.board[row + 1][col] == 0:
             moves.append(Move.Move((row, col), (row + 1, col), self.board))
