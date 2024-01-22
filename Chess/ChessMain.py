@@ -3,6 +3,7 @@ import ChessEngine
 import Move
 import Board
 import pygame as p
+import sys
 
 
 def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool]) -> None:
@@ -11,8 +12,12 @@ def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, f
     """
     if event.key == p.K_k:
         game_state.config.change_theme()
+
     elif event.key in [p.K_ESCAPE, p.K_q]:
         flags["running"] = False
+        p.quit()
+        sys.exit()
+
     elif event.key == p.K_z:
         game_state.undo_move()
         flags["move_flag"] = True
@@ -95,6 +100,8 @@ def main():
         for event in p.event.get():
             if event.type == p.QUIT:
                 flags["running"] = False
+                p.quit()
+                sys.exit()
 
             # Key handler
             if event.type == p.KEYDOWN:
