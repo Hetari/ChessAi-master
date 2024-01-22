@@ -28,7 +28,7 @@ def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, f
     """
     if event.type == p.KEYDOWN:
         if event.key == p.K_k:
-            game_state.config.change_theme()
+            config.change_theme()
 
         elif event.key in [p.K_ESCAPE, p.K_q]:
             handle_quit(flags)
