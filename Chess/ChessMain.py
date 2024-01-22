@@ -45,7 +45,7 @@ def handle_mouse_events(square_selected: tuple[int, int], player_clicks: list[tu
         list: Updated player_clicks.
     """
     # Get the row and column of the square clicked by the player
-    row, col = get_square_and_clicks()
+    row, col = get_square_and_clicks(p.mouse.get_pos())
 
     # If the same square is clicked twice, reset the selected square and clear player clicks
     if square_selected == (row, col):
