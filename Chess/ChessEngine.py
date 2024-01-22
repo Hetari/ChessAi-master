@@ -69,6 +69,7 @@ class GameState():
         move = self.move_log.pop()
         self.board[move.start_row][move.start_col] = move.piece_moved
         self.board[move.end_row][move.end_col] = move.piece_captured
+        self.white_to_move = not self.white_to_move
 
     def get_valid_moves(self):
         return self.get_all_possible_moves()
@@ -101,11 +102,15 @@ class GameState():
                 if row == 6 and self.board[row - 2][col] == 0:
                     moves.append(
                         Move.Move((row, col), (row - 2, col), self.board))
-            if col >= 1 and self.board[row - 1][col - 1] < len(self.board[row]):
+
+            # Check if there's a black piece diagonally left
+            # col - 1 >= 0
+            if col >= 1 and self.board[row - 1][col - 1] in range(1, 7):
                 moves.append(Move.Move(
                     (row, col), (row - 1, col - 1), self.board))
 
-            if col + 1 < len(self.board[row]) and self.board[row - 1][col + 1] < len(self.board[row]):
+            # Check if there's a black piece diagonally right
+            if col + 1 < len(self.board[row]) and self.board[row - 1][col + 1] in range(1, 7):
                 moves.append(Move.Move(
                     (row, col), (row - 1, col + 1), self.board))
 
