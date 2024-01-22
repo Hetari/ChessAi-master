@@ -75,7 +75,7 @@ class GameState():
         Returns:
             list[Move]: A list of all possible and valid moves.
         """
-        moves = [Move.Move((6, 4), (4, 4), self.board)]
+        moves = []
         for row in range(len(self.board)):
             for col in range(len(self.board[row])):
                 piece = self.board[row][col]
@@ -83,57 +83,29 @@ class GameState():
                 # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
 
                 # piece in range(7, 13) and
-                if self.white_to_move:
-                    if piece == 12:
+                if (self.white_to_move and piece in range(7, 13)) or (not self.white_to_move and piece in range(1, 7)):
+                    if piece in [6, 12]:
                         self.get_pawn_moves(row, col, moves)
-                    # elif piece == 11:
-                    #     self.get_king_moves(row, col, moves)
-                    # elif piece == 10:
-                    #     self.get_queen_moves(row, col, moves)
-                    # elif piece == 9:
-                    #     self.get_bishop_moves(row, col, moves)
-                    # elif piece == 8:
-                    #     self.get_knight_moves(row, col, moves)
-                    # elif piece == 7:
-                    #     self.get_rook_moves(row, col, moves)
-                else:
-                    # if piece == 1:
-                    #     self.get_rook_moves(row, col, moves)
-                    # elif piece == 2:
-                    #     self.get_knight_moves(row, col, moves)
-                    # elif piece == 3:
-                    #     self.get_bishop_moves(row, col, moves)
-                    # elif piece == 4:
-                    #     self.get_queen_moves(row, col, moves)
-                    # elif piece == 5:
-                    #     self.get_king_moves(row, col, moves)
-                    if piece == 6:
-                        self.get_pawn_moves(row, col, moves)
-        # piece = self.board[row][col]
-        #         move_functions = {
-        #             1: self.get_rook_moves,
-        #             2: self.get_knight_moves,
-        #             3: self.get_bishop_moves,
-        #             4: self.get_queen_moves,
-        #             5: self.get_king_moves,
-        #             6: self.get_pawn_moves,
-        #             7: self.get_rook_moves,
-        #             8: self.get_knight_moves,
-        #             9: self.get_bishop_moves,
-        #             10: self.get_queen_moves,
-        #             11: self.get_king_moves,
-        #             12: self.get_pawn_moves,
-        #         }
 
-        #     valid_pieces = range(7, 13) if self.white_to_move else range(1, 7)
-
-        #     # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
-        #     if piece in valid_pieces:
-        #         move_functions[piece](row, col, moves)
+                    if piece in [1, 7]:
+                        ...
+                        # self.get_rook_moves(row, col, moves)
         return moves
 
     def get_pawn_moves(self, row, col, moves):
-        pass
+        if self.white_to_move:
+            if self.board[row - 1][col] == 0:
+                moves.append(Move.Move(
+                    (row, col), (row - 1, col), self.board))
+                if row == 6 and self.board[row - 2][col] == 0:
+                    moves.append(
+                        Move.Move((row, col), (row - 2, col), self.board))
+
+        elif self.board[row + 1][col] == 0:
+            moves.append(Move.Move((row, col), (row + 1, col), self.board))
+            if row == 1 and self.board[row + 2][col] == 0:
+                moves.append(
+                    Move.Move((row, col), (row + 2, col), self.board))
 
 
 class Color:
