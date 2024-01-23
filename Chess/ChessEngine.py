@@ -117,10 +117,11 @@ class GameState():
             self._append_pawn_capture((row, col), (row - 1, col - 1), moves)
             self._append_pawn_capture((row, col), (row - 1, col + 1), moves)
 
-        elif self._is_valid_position(row, col) and self.board[row + 1][col] == 0:
-            self._append_pawn_move((row, col), (row + 1, col), moves)
-            if row == 1 and self.board[row + 2][col] == 0:
-                self._append_pawn_move((row, col), (row + 2, col), moves)
+        elif self._is_valid_position(row, col) and not self.white_to_move:
+            if self.board[row + 1][col] == 0:
+                self._append_pawn_move((row, col), (row + 1, col), moves)
+                if row == 1 and self.board[row + 2][col] == 0:
+                    self._append_pawn_move((row, col), (row + 2, col), moves)
 
             self._append_pawn_capture((row, col), (row + 1, col - 1), moves)
             self._append_pawn_capture((row, col), (row + 1, col + 1), moves)
