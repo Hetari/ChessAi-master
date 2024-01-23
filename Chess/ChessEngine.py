@@ -22,7 +22,7 @@ class GameState():
         self.board = np.array([
             [1, 2, 3, 4, 5, 3, 2, 1],
             [6, 6, 6, 6, 6, 6, 6, 6],
-            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 12, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 6, 0, 0, 0, 0, 0],
@@ -88,37 +88,53 @@ class GameState():
 
                 # check the turn of the piece is  black from 1 to 6, or white from 7 to 12
 
-                # piece in range(7, 13) and
                 if piece in range(13):
                     self.move_functions.get(
                         piece, lambda *_: None)(row, col, moves)
         return moves
 
-    def get_pawn_moves(self, row, col, moves):
-        if self.white_to_move:
+    def get_pawn_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
+        """
+        Generate valid moves for a pawn at a given position.
+
+        Args:
+        - row: int, the row of the pawn
+        - col: int, the column of the pawn
+        - moves: list[Move], list of valid moves
+
+        Returns:
+        - None
+        """
+        if self._is_valid_position(row, col) and self.white_to_move:
+            # Check for empty square in front of the pawn
             if self.board[row - 1][col] == 0:
-                moves.append(Move.Move(
-                    (row, col), (row - 1, col), self.board))
+                self._append_pawn_move((row, col), (row - 1, col), moves)
+                # Check for double-step move from starting row if is in its place
                 if row == 6 and self.board[row - 2][col] == 0:
-                    moves.append(
-                        Move.Move((row, col), (row - 2, col), self.board))
+                    self._append_pawn_move((row, col), (row - 2, col), moves)
 
-            # Check if there's a black piece diagonally left
-            # col - 1 >= 0
-            if col >= 1 and self.board[row - 1][col - 1] in range(1, 7):
-                moves.append(Move.Move(
-                    (row, col), (row - 1, col - 1), self.board))
+            # Check for capturing moves, left and right
+            self._append_pawn_capture((row, col), (row - 1, col - 1), moves)
+            self._append_pawn_capture((row, col), (row - 1, col + 1), moves)
 
-            # Check if there's a black piece diagonally right
-            if col + 1 < len(self.board[row]) and self.board[row - 1][col + 1] in range(1, 7):
-                moves.append(Move.Move(
-                    (row, col), (row - 1, col + 1), self.board))
-
-        elif self.board[row + 1][col] == 0:
-            moves.append(Move.Move((row, col), (row + 1, col), self.board))
+        elif self._is_valid_position(row, col) and self.board[row + 1][col] == 0:
+            self._append_pawn_move((row, col), (row + 1, col), moves)
             if row == 1 and self.board[row + 2][col] == 0:
-                moves.append(
-                    Move.Move((row, col), (row + 2, col), self.board))
+                self._append_pawn_move((row, col), (row + 2, col), moves)
+
+            self._append_pawn_capture((row, col), (row + 1, col - 1), moves)
+            self._append_pawn_capture((row, col), (row + 1, col + 1), moves)
+
+    def _append_pawn_move(self, start, end, moves):
+        if self._is_valid_position(end[0], end[1]):
+            moves.append(Move.Move(start, end, self.board))
+
+    def _append_pawn_capture(self, start, end, moves):
+        if self._is_valid_position(end[0], end[1]) and ((self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13))):
+            moves.append(Move.Move(start, end, self.board))
+
+    def _is_valid_position(self, row, col):
+        return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
 
 
 class Color:
