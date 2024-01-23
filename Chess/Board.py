@@ -2,6 +2,7 @@ from const import *
 import numpy as np
 import ChessEngine
 import pygame as p
+import os
 
 
 class Board():
@@ -26,7 +27,7 @@ class Board():
         # (goto draw_pieces function to see how we make the pieces in the center)
         for piece in range(1, 13):
             IMAGES[piece] = p.transform.scale(p.image.load(
-                f'./Chess/images/{piece}.png'), (SQ_SIZE - 20, SQ_SIZE - 20))
+                f'{os.getcwd()}/Chess/images/{piece}.png'), (SQ_SIZE - 20, SQ_SIZE - 20))
 
     def draw_game_state(self, screen: p.Surface, game_state: ChessEngine.GameState) -> None:
         """
