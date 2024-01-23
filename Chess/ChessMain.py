@@ -22,7 +22,7 @@ def initialize_game():
     return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks
 
 
-def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool]) -> None:
+def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]]) -> None:
     """
     Handle key events in the game, where q or escape is quit, z is undo, and k is change theme.
     """
@@ -35,7 +35,9 @@ def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, f
 
         elif event.key == p.K_z:
             game_state.undo_move()
+            square_selected, player_clicks = (), []
             flags["move_flag"] = True
+    return square_selected, player_clicks
 
 
 def get_square_and_clicks(position: p.mouse) -> tuple[int, int]:
@@ -111,7 +113,8 @@ def main():
                 handle_quit(flags)
 
             # Key handler
-            handle_key_events(event, game_state, flags)
+            square_selected, player_clicks = handle_key_events(event, game_state, flags,
+                                                               square_selected, player_clicks)
 
             # Mouse handler
             square_selected, player_clicks = handle_mouse_events(
