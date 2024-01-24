@@ -105,36 +105,36 @@ class GameState():
         Returns:
         - None
         """
-        if self._is_valid_position(row, col) and self.white_to_move:
+        if self.__is_valid_position(row, col) and self.white_to_move:
             # Check for empty square in front of the pawn
-            if self.board[row - 1][col] == 0:
-                self._append_pawn_move((row, col), (row - 1, col), moves)
+            if self.__is_valid_position(row + 1, col) and self.board[row - 1][col] == 0:
+                self.__append_pawn_move((row, col), (row - 1, col), moves)
                 # Check for double-step move from starting row if is in its place
                 if row == 6 and self.board[row - 2][col] == 0:
-                    self._append_pawn_move((row, col), (row - 2, col), moves)
+                    self.__append_pawn_move((row, col), (row - 2, col), moves)
 
             # Check for capturing moves, left and right
-            self._append_pawn_capture((row, col), (row - 1, col - 1), moves)
-            self._append_pawn_capture((row, col), (row - 1, col + 1), moves)
+            self.__append_pawn_capture((row, col), (row - 1, col - 1), moves)
+            self.__append_pawn_capture((row, col), (row - 1, col + 1), moves)
 
-        elif self._is_valid_position(row, col) and not self.white_to_move:
-            if self.board[row + 1][col] == 0:
-                self._append_pawn_move((row, col), (row + 1, col), moves)
+        elif self.__is_valid_position(row, col) and not self.white_to_move:
+            if self.__is_valid_position(row + 1, col) and self.board[row + 1][col] == 0:
+                self.__append_pawn_move((row, col), (row + 1, col), moves)
                 if row == 1 and self.board[row + 2][col] == 0:
-                    self._append_pawn_move((row, col), (row + 2, col), moves)
+                    self.__append_pawn_move((row, col), (row + 2, col), moves)
 
-            self._append_pawn_capture((row, col), (row + 1, col - 1), moves)
-            self._append_pawn_capture((row, col), (row + 1, col + 1), moves)
+            self.__append_pawn_capture((row, col), (row + 1, col - 1), moves)
+            self.__append_pawn_capture((row, col), (row + 1, col + 1), moves)
 
-    def _append_pawn_move(self, start, end, moves):
-        if self._is_valid_position(end[0], end[1]):
+    def __append_pawn_move(self, start, end, moves):
+        if self.__is_valid_position(end[0], end[1]):
             moves.append(Move.Move(start, end, self.board))
 
-    def _append_pawn_capture(self, start, end, moves):
-        if self._is_valid_position(end[0], end[1]) and ((self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13))):
+    def __append_pawn_capture(self, start, end, moves):
+        if self.__is_valid_position(end[0], end[1]) and ((self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13))):
             moves.append(Move.Move(start, end, self.board))
 
-    def _is_valid_position(self, row, col):
+    def __is_valid_position(self, row, col):
         return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
 
 
