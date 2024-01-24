@@ -126,15 +126,50 @@ class GameState():
             self.__append_pawn_capture((row, col), (row + 1, col - 1), moves)
             self.__append_pawn_capture((row, col), (row + 1, col + 1), moves)
 
-    def __append_pawn_move(self, start, end, moves):
+    def __append_pawn_move(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
+        """
+        Append a pawn move to the list of moves.
+
+        Args:
+            start (tuple[int]): The starting position of the pawn move.
+            end (tuple[int]): The ending position of the pawn move.
+            moves (list[Move.Move]): The list of moves to append the pawn move to.
+
+        Returns:
+            None
+        """
         if self.__is_valid_position(end[0], end[1]):
             moves.append(Move.Move(start, end, self.board))
 
-    def __append_pawn_capture(self, start, end, moves):
+    def __append_pawn_capture(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
+        """
+        Appends a pawn capture move to the list of moves.
+
+        Parameters:
+            start (tuple[int]): The starting position of the pawn.
+            end (tuple[int]): The ending position of the pawn after the capture.
+            moves (list[Move.Move]): The list of moves to append the capture move to.
+
+        Returns:
+            None
+        """
+        # Check if the ending position is a valid position on the board, then:
+        # Check if the captured piece is an opponent's piece, then:
+        # Create a new move object and append it to the list of moves
         if self.__is_valid_position(end[0], end[1]) and ((self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13))):
             moves.append(Move.Move(start, end, self.board))
 
-    def __is_valid_position(self, row, col):
+    def __is_valid_position(self, row: int, col: int) -> bool:
+        """
+        Check if the given row and column are valid positions on the board.
+
+        Args:
+        row (int): The row index.
+        col (int): The column index.
+
+        Returns:
+        bool: True if the position is valid, False otherwise.
+        """
         return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
 
 
