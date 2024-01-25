@@ -42,17 +42,25 @@ class GameState():
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
-            [7, 0, 0, 0, 0, 0, 0, 0],
+            [9, 0, 0, 0, 0, 0, 0, 0],
             [12, 12, 12, 12, 12, 12, 12, 12],
             [7, 8, 9, 10, 11, 9, 8, 7],
         ], dtype=np.int8)
 
         # Get the possible moves for each piece
         self.move_functions: dict[int, callable] = {
-            6: self.get_pawn_moves,
-            12: self.get_pawn_moves,
             1: self.get_rock_moves,
+            2: self.get_knight_moves,
+            3: self.get_bishop_moves,
+            4: self.get_queen_moves,
+            5: self.get_king_moves,
+            6: self.get_pawn_moves,
             7: self.get_rock_moves,
+            8: self.get_knight_moves,
+            9: self.get_bishop_moves,
+            10: self.get_queen_moves,
+            11: self.get_king_moves,
+            12: self.get_pawn_moves,
         }
 
         self.white_to_move: bool = True
@@ -81,7 +89,6 @@ class GameState():
 
         # Toggle the order of moves
         self.white_to_move = not self.white_to_move
-        print(f"White {self.white_to_move}")
 
     def undo_move(self):
         """
@@ -199,10 +206,11 @@ class GameState():
         if self.__is_valid_position(end[0], end[1]) and ((self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13))):
             moves.append(Move.Move(start, end, self.board))
 
-    def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
-
-        # Up, left, down, right
-        directions: tuple[int, int] = ((-1, 0), (0, -1), (1, 0), (0, 1),)
+    def get_rock_moves(self,
+                       row: int,
+                       col: int,
+                       moves: list[Move.Move],
+                       directions: tuple[int, int] = ((-1, 0), (0, -1), (1, 0), (0, 1),)) -> None:
         for direction in directions:
             for i in range(1, 8):
                 end_row = row + direction[0] * i
@@ -256,6 +264,92 @@ class GameState():
         if (self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13)):
             moves.append(Move.Move(start, end, self.board))
 
+    def get_bishop_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
+        """
+        Get the bishop moves for the given row and column, and update the list of moves accordingly.
+
+        Parameters:
+            start: A tuple representing the start position of the move.
+            end: A tuple representing the end position of the move.
+            moves: A list of Move objects representing possible moves.
+
+        Returns:
+            None
+        """
+        directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
+        self.get_rock_moves(row, col, moves, directions)
+
+    def get_knight_moves(self,
+                         row: int,
+                         col: int,
+                         moves: list[Move.Move],
+                         directions=(
+                             (-2, -1), (-2, 1), (-1, -2), (-1, 2),
+                             (1, -2), (1, 2), (2, -1), (2, 1)
+                         )) -> None:
+        """
+        Get the knight moves for the given row and column, and update the list of moves accordingly.
+
+        Parameters:
+            start: A tuple representing the start position of the move.
+            end: A tuple representing the end position of the move.
+            moves: A list of Move objects representing possible moves.
+
+        Returns:
+            None
+        """
+
+        for direction in directions:
+            end_row = row + direction[0]
+            end_col = col + direction[1]
+
+            if not self.__is_valid_position(end_row, end_col):
+                continue
+
+            end_piece: int = self.board[end_row][end_col]
+            is_enemy: bool = self.__is_enemy(end_row, end_col)
+
+            if end_piece == 0 or is_enemy:
+                self.__append_knight_move_capture(
+                    (row, col), (end_row, end_col), moves
+                )
+
+    def __append_knight_move_capture(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
+        """
+        Append a knight move to the list of moves if the piece at the start position is a valid knight piece for the current player's turn.
+
+        Parameters:
+            start: A tuple representing the start position of the move.
+            end: A tuple representing the end position of the move.
+            moves: A list of Move objects representing possible moves.
+
+        Returns:
+            None
+        """
+        if (self.white_to_move and self.board[start[0]][start[1]] in range(7, 13)) or (not self.white_to_move and self.board[start[0]][start[1]] in range(1, 7)):
+            moves.append(Move.Move(start, end, self.board))
+
+    def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
+        """
+        Get the queen moves for the given row and column, and update the list of moves accordingly.
+
+        Parameters:
+            start: A tuple representing the start position of the move.
+            end: A tuple representing the end position of the move.
+            moves: A list of Move objects representing possible moves.
+
+        Returns:
+            None
+        """
+        self.get_bishop_moves(row, col, moves)
+        self.get_rock_moves(row, col, moves)
+
+    def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
+        directions = (
+            (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)
+        )
+        self.get_knight_moves(row, col, moves, directions)
+
     def __is_valid_position(self, row: int, col: int) -> bool:
         """
         Check if the given row and column are valid positions on the board.
@@ -281,19 +375,6 @@ class GameState():
         bool: True if the position is an enemy piece, False otherwise.
         """
         return (self.white_to_move and self.board[row][col] in range(1, 7)) or (not self.white_to_move and self.board[row][col] in range(7, 13))
-
-    def __is_friend(self, row: int, col: int) -> bool:
-        """
-        Check if the given position is a friend piece.
-
-        Args:
-        row (int): The row index.
-        col (int): The column index.
-
-        Returns:
-        bool: True if the position is an friend piece, False otherwise.
-        """
-        return (self.white_to_move and self.board[row][col] in range(7, 13)) or (not self.white_to_move and self.board[row][col] in range(1, 7))
 
 
 class Color:
