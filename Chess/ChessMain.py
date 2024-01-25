@@ -14,9 +14,10 @@ def initialize_game():
     screen.fill(p.Color("white"))
     game_state = ChessEngine.GameState()
     valid_moves = game_state.get_valid_moves()
-    # board.load_images()
+
     # keep track of last click
     square_selected = ()
+
     # keep track of player clicks (two tuples: [(6, 4), (4, 4)])
     player_clicks = []
     return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks
@@ -86,9 +87,9 @@ def handle_mouse_events(event: p.event, square_selected: tuple[int, int], player
                 # If it's a valid move, make the move in the game state and set the move flag
                 game_state.make_move(move)
                 flags["move_flag"] = True
-            # Reset the selected square and clear player clicks, so that the player can make another move
-            square_selected, player_clicks = (), []
-
+                square_selected, player_clicks = (), []
+            else:
+                player_clicks = [square_selected]
     # if there is not a mouse click event we will return square_selected and player_clicks that passed in the function
     return square_selected, player_clicks
 
