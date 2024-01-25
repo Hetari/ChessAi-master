@@ -42,7 +42,7 @@ class GameState():
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0],
-            [9, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
             [12, 12, 12, 12, 12, 12, 12, 12],
             [7, 8, 9, 10, 11, 9, 8, 7],
         ], dtype=np.int8)
@@ -279,14 +279,7 @@ class GameState():
         directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
         self.get_rock_moves(row, col, moves, directions)
 
-    def get_knight_moves(self,
-                         row: int,
-                         col: int,
-                         moves: list[Move.Move],
-                         directions=(
-                             (-2, -1), (-2, 1), (-1, -2), (-1, 2),
-                             (1, -2), (1, 2), (2, -1), (2, 1)
-                         )) -> None:
+    def get_knight_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the knight moves for the given row and column, and update the list of moves accordingly.
 
@@ -298,7 +291,10 @@ class GameState():
         Returns:
             None
         """
-
+        directions = (
+            (-2, -1), (-2, 1), (-1, -2), (-1, 2),
+            (1, -2), (1, 2), (2, -1), (2, 1)
+        )
         for direction in directions:
             end_row = row + direction[0]
             end_col = col + direction[1]
@@ -310,24 +306,9 @@ class GameState():
             is_enemy: bool = self.__is_enemy(end_row, end_col)
 
             if end_piece == 0 or is_enemy:
-                self.__append_knight_move_capture(
+                self.__append_rock_move(
                     (row, col), (end_row, end_col), moves
                 )
-
-    def __append_knight_move_capture(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
-        """
-        Append a knight move to the list of moves if the piece at the start position is a valid knight piece for the current player's turn.
-
-        Parameters:
-            start: A tuple representing the start position of the move.
-            end: A tuple representing the end position of the move.
-            moves: A list of Move objects representing possible moves.
-
-        Returns:
-            None
-        """
-        if (self.white_to_move and self.board[start[0]][start[1]] in range(7, 13)) or (not self.white_to_move and self.board[start[0]][start[1]] in range(1, 7)):
-            moves.append(Move.Move(start, end, self.board))
 
     def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -348,7 +329,20 @@ class GameState():
         directions = (
             (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)
         )
-        self.get_knight_moves(row, col, moves, directions)
+        for i in range(8):
+            end_row = row + directions[i][0]
+            end_col = col + directions[i][1]
+
+            if not self.__is_valid_position(end_row, end_col):
+                continue
+
+            end_piece: int = self.board[end_row][end_col]
+            is_enemy: bool = self.__is_enemy(end_row, end_col)
+
+            if end_piece == 0 or is_enemy:
+                self.__append_rock_move(
+                    (row, col), (end_row, end_col), moves
+                )
 
     def __is_valid_position(self, row: int, col: int) -> bool:
         """
