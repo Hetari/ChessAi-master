@@ -1,3 +1,4 @@
+import os
 from const import *
 import ChessEngine
 import Move
@@ -123,8 +124,12 @@ def main():
 
         # If a move was made, update the valid moves
         if flags["move_flag"]:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_flag"] = False
+            print("valid_moves 2: ", len(valid_moves))
+            # clear the console
 
         board.draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
