@@ -178,7 +178,7 @@ class GameState():
                 # get rid of any moves that don't block check
                 for i in range(len(moves) - 1, -1, -1):
                     # if moves[i].piece_moved != piece_checking:
-                    if moves[i].piece_moved in [5, 10]:
+                    if moves[i].piece_moved not in [5, 10]:
                         if not (moves[i].end_row, moves[i].end_col) in valid_squares:
                             moves.remove(moves[i])
             else:
@@ -220,8 +220,7 @@ class GameState():
 
                     end_piece = self.board[end_row][end_col]
 
-                    # !!! and end_piece not in [5, 10]
-                    if end_piece in ally_is:
+                    if end_piece in ally_is and end_piece not in [5, 10]:
                         # first allied piece could be pinned
                         if possible_pin == ():
                             possible_pin = (end_row, end_col,
@@ -247,8 +246,8 @@ class GameState():
 
                         if (0 <= j <= 3 and enemy_type in [1, 7]) or \
                             (4 <= j <= 7 and enemy_type in [3, 9]) or \
-                            (i == 1 and enemy_type in [6, 12] and ((enemy_type in range(1, 7) and 6 <= j <= 7) or (enemy_type in range(7, 13) and 4 <= j <= 5))) or \
-                            enemy_type == 4 or \
+                            (i == 1 and enemy_type in [6, 12] and ((enemy_type in range(7, 13) and 6 <= j <= 7) or (enemy_type in range(1, 7) and 4 <= j <= 5))) or \
+                            enemy_type in [4, 10] or \
                                 (i == 1 and enemy_type in [5, 11]):
                             # * print(
                             # *     f"Checking direction {direction} at distance {i} from ({start_row}, {start_col})")
@@ -264,12 +263,14 @@ class GameState():
                                 break
                         else:
                             # * print("Not pinned!")
+                            # enemy piece not applying checking
                             break
                 else:
                     # * print("Not valid position!")
                     break
-        knight_moves: tuple[tuple[int, int]] = (
-            (2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2))
+
+        knight_moves: tuple[tuple[int]] = (
+            (-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
         for move in knight_moves:
             end_row: int = start_row + move[0]
             end_col: int = start_col + move[1]
@@ -322,10 +323,10 @@ class GameState():
                 pin_direction = (self.pins[i][2], self.pins[i][3])
                 self.pins.remove(self.pins[i])
                 break
-
-        if self.__is_valid_position(row, col) and self.white_to_move:
+        # !!! self.__is_valid_position(row, col) and
+        if self.white_to_move:
             # Check for empty square in front of the pawn
-            if self.__is_valid_position(row + 1, col) and self.board[row - 1][col] == 0:
+            if self.__is_valid_position(row - 1, col) and self.board[row - 1][col] == 0:
                 if not piece_pinned or pin_direction == (-1, 0):
                     self.__append_pawn_move((row, col), (row - 1, col), moves)
                     # Check for double-step move from starting row if is in its place
@@ -334,15 +335,22 @@ class GameState():
                             (row, col), (row - 2, col), moves)
 
             # Check for capturing moves, left and right
-            if not piece_pinned or pin_direction == (-1, -1):
-                self.__append_pawn_capture(
-                    (row, col), (row - 1, col - 1), moves)
+            if col - 1 >= 0:
+                if self.__is_valid_position(row - 1, col - 1) and self.board[row - 1][col - 1] in range(1, 7):
+                    if not piece_pinned or pin_direction == (-1, -1):
+                        #!!! self.__append_pawn_capture(
+                        #!!! (row, col), (row - 1, col - 1), moves)
+                        moves.append(
+                            Move.Move((row, col), (row - 1, col - 1), self.board))
 
-            if not piece_pinned or pin_direction == (-1, 1):
-                self.__append_pawn_capture(
-                    (row, col), (row - 1, col + 1), moves)
+            if col + 1 <= 7:
+                if self.__is_valid_position(row - 1, col + 1) and self.board[row - 1][col + 1] in range(1, 7):
+                    if not piece_pinned or pin_direction == (-1, 1):
+                        moves.append(
+                            Move.Move((row, col), (row - 1, col + 1), self.board))
 
-        elif self.__is_valid_position(row, col) and not self.white_to_move:
+        # !!! self.__is_valid_position(row, col) and
+        elif not self.white_to_move:
             if self.__is_valid_position(row + 1, col) and self.board[row + 1][col] == 0:
                 if not piece_pinned or pin_direction == (1, 0):
                     self.__append_pawn_move((row, col), (row + 1, col), moves)
@@ -350,13 +358,17 @@ class GameState():
                         self.__append_pawn_move(
                             (row, col), (row + 2, col), moves)
 
-            if not piece_pinned or pin_direction == (1, -1):
-                self.__append_pawn_capture(
-                    (row, col), (row + 1, col - 1), moves)
+            if col - 1 >= 0:
+                if self.__is_valid_position(row + 1, col - 1) and self.board[row + 1][col - 1] in range(1, 7):
+                    if not piece_pinned or pin_direction == (1, -1):
+                        moves.append(
+                            Move.Move((row, col), (row + 1, col - 1), self.board))
 
-            if not piece_pinned or pin_direction == (1, 1):
-                self.__append_pawn_capture(
-                    (row, col), (row + 1, col + 1), moves)
+            if col + 1 <= 7:
+                if self.__is_valid_position(row + 1, col + 1) and self.board[row + 1][col + 1] in range(1, 7):
+                    if not piece_pinned or pin_direction == (1, 1):
+                        moves.append(
+                            Move.Move((row, col), (row + 1, col + 1), self.board))
 
     def __append_pawn_move(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
         """
@@ -402,10 +414,12 @@ class GameState():
             if self.pins[i][0] == row and self.pins[i][1] == col:
                 piece_pinned = True
                 pin_direction = (self.pins[i][2], self.pins[i][3])
-                self.pins.remove(self.pins[i])
-                if self.board[row][col] not in [5, 10]:
+                if self.board[row][col] not in [4, 10]:
                     self.pins.remove(self.pins[i])
                 break
+
+        enemy = list(range(1, 7)) if not self.white_to_move else list(
+            range(7, 13))
 
         for direction in directions:
             for i in range(1, 8):
@@ -420,46 +434,14 @@ class GameState():
                     is_enemy: bool = self.__is_enemy(end_row, end_col)
 
                     if end_piece == 0:
-                        self.__append_rock_move(
-                            (row, col), (end_row, end_col), moves
-                        )
+                        moves.append(Move.Move((row, col),
+                                     (end_row, end_col), self.board))
                     elif is_enemy:
-                        self.__append_rock_capture(
-                            (row, col), (end_row, end_col), moves
-                        )
+                        moves.append(Move.Move((row, col),
+                                     (end_row, end_col), self.board))
                         break
                     else:
                         break
-
-    def __append_rock_move(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
-        """
-        Append a rock move to the list of moves if the piece at the start position is a valid rock piece for the current player's turn.
-
-        Parameters:
-            start: A tuple representing the start position of the move.
-            end: A tuple representing the end position of the move.
-            moves: A list of Move objects representing possible moves.
-
-        Returns:
-            None
-        """
-        if (self.white_to_move and self.board[start[0]][start[1]] in range(7, 13)) or (not self.white_to_move and self.board[start[0]][start[1]] in range(1, 7)):
-            moves.append(Move.Move(start, end, self.board))
-
-    def __append_rock_capture(self, start: tuple[int], end: tuple[int], moves: list[Move.Move]):
-        """
-        Append a rock move to the list of moves if the piece at the start position is a valid rock piece for the current player's turn, and has capture.
-
-        Parameters:
-            start: A tuple representing the start position of the move.
-            end: A tuple representing the end position of the move.
-            moves: A list of Move objects representing possible moves.
-
-        Returns:
-            None
-        """
-        if (self.white_to_move and self.board[end[0]][end[1]] in range(1, 7)) or (not self.white_to_move and self.board[end[0]][end[1]] in range(7, 13)):
-            moves.append(Move.Move(start, end, self.board))
 
     def get_bishop_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -499,6 +481,10 @@ class GameState():
             (-2, -1), (-2, 1), (-1, -2), (-1, 2),
             (1, -2), (1, 2), (2, -1), (2, 1)
         )
+
+        enemy = list(range(1, 7)) if not self.white_to_move else list(
+            range(7, 13))
+
         for direction in directions:
             end_row = row + direction[0]
             end_col = col + direction[1]
@@ -508,12 +494,10 @@ class GameState():
 
             if not piece_pinned:
                 end_piece: int = self.board[end_row][end_col]
-                is_enemy: bool = self.__is_enemy(end_row, end_col)
 
-                if end_piece == 0 or is_enemy:
-                    self.__append_rock_move(
-                        (row, col), (end_row, end_col), moves
-                    )
+                if end_piece in enemy:
+                    moves.append(
+                        Move.Move((row, col), (end_row, end_col), self.board))
 
     def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -527,12 +511,15 @@ class GameState():
         Returns:
             None
         """
-        self.get_bishop_moves(row, col, moves)
         self.get_rock_moves(row, col, moves)
+        self.get_bishop_moves(row, col, moves)
 
     def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         row_moves = (-1, -1, -1, 0, 0, 1, 1, 1)
         col_moves = (-1, 0, 1, -1, 1, -1, 0, 1)
+        ally = list(range(7, 13)) if self.white_to_move else list(range(1, 7))
+        enemy = list(range(1, 7)) if not self.white_to_move else list(
+            range(7, 13))
 
         for i in range(8):
             end_row = row + row_moves[i]
@@ -542,9 +529,8 @@ class GameState():
                 continue
 
             end_piece: int = self.board[end_row][end_col]
-            is_enemy: bool = self.__is_enemy(end_row, end_col)
 
-            if end_piece == 0 or is_enemy:
+            if end_piece in enemy:
                 if self.white_to_move:
                     self.white_king_location = (end_row, end_col)
                 else:
@@ -553,9 +539,8 @@ class GameState():
                 in_check, pins, checks = self.check_pins_and_checks()
 
                 if not in_check:
-                    self.__append_rock_move(
-                        (row, col), (end_row, end_col), moves
-                    )
+                    moves.append(
+                        Move.Move((row, col), (end_row, end_col), self.board))
 
                 if self.white_to_move:
                     self.white_king_location = (row, col)
