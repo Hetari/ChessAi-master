@@ -54,7 +54,7 @@ class GameState():
         self.white_to_move = not self.white_to_move
 
         # Update the king location
-        self.update_king_location(move.piece_moved, move.end_row, move.end_col)
+        self.__update_king_location(move.piece_moved, move.end_row, move.end_col)
 
     def undo_move(self):
         """
@@ -74,7 +74,7 @@ class GameState():
             self.white_to_move = not self.white_to_move
 
             # update the king's position if needed
-            self.update_king_location(
+            self.__update_king_location(
                 move.piece_moved, move.end_row, move.end_col)
 
     def get_valid_moves(self) -> list[Move.Move]:
@@ -113,44 +113,6 @@ class GameState():
             moves = self.get_all_possible_moves()
 
         return moves
-
-    def __block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> list[tuple[int, int]]:
-        """
-        Returns a list of valid squares to block a check.
-
-        Args:
-            check (Tuple[int, int]): The location of the checking piece.
-            king_row (int): The row of the king.
-            king_col (int): The column of the king.
-
-        Returns:
-            List[Tuple[int, int]]: A list of valid squares to block a check.
-        """
-        check_row: int = check[0]
-        check_col: int = check[1]
-        piece_checking: int = self.board[check_row][check_col]
-
-        if piece_checking[1] == "N":
-            valid_squares: list[tuple[int, int]] = [(check_row, check_col)]
-        else:
-            for i in range(1, 8):
-                # check[2] and check[3] are the direction of the checking piece.
-                valid_square = (
-                    king_row + check[2] * i, king_col + check[3] * i)
-                valid_squares.append(valid_square)
-
-                # once you get to piece and check
-                if valid_square[0] == check_row and valid_square[1] == check_col:
-                    break
-
-        return valid_squares
-
-    def __filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
-        # get rid of any moves that don't block check
-        for i in range(len(moves) - 1, -1, -1):
-            if moves[i].piece_moved[1] != "K":
-                if not (moves[i].end_row, moves[i].end_col) in valid_squares:
-                    moves.remove(moves[i])
 
     def check_pins_and_checks(self):
         # squares where the allied pinned is and directions of the pinned piece
@@ -459,42 +421,7 @@ class GameState():
                     else:
                         self.black_king_location = (row, col)
 
-    def __is_valid_position(self, row: int, col: int) -> bool:
-        """
-        Check if the given row and column are valid positions on the board.
-
-        Args:
-        row (int): The row index.
-        col (int): The column index.
-
-        Returns:
-        bool: True if the position is valid, False otherwise.
-        """
-        return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
-
-    def __is_enemy(self, row: int, col: int) -> bool:
-        """
-        Check if the given position is an enemy piece.
-
-        Args:
-        row (int): The row index.
-        col (int): The column index.
-
-        Returns:
-        bool: True if the position is an enemy piece, False otherwise.
-        """
-        return (self.white_to_move and self.board[row][col] in range(1, 7)) or (not self.white_to_move and self.board[row][col] in range(7, 13))
-
-    def __get_king_location(self) -> tuple[int, int]:
-        """
-        Returns the current location of the king based on whose turn it is.
-
-        Returns:
-            Tuple[int, int]: The row and column of the king.
-        """
-        return self.white_king_location if self.white_to_move else self.black_king_location
-
-    def update_king_location(self, king: str, row: int, col: int) -> None:
+    def __update_king_location(self, king: str, row: int, col: int) -> None:
         """
         Updates the location of the king in the board.
 
@@ -510,6 +437,67 @@ class GameState():
             self.white_king_location = (row, col)
         elif king == "bK":
             self.black_king_location = (row, col)
+    def __is_valid_position(self, row: int, col: int) -> bool:
+        """
+        Check if the given row and column are valid positions on the board.
+
+        Args:
+        row (int): The row index.
+        col (int): The column index.
+
+        Returns:
+        bool: True if the position is valid, False otherwise.
+        """
+        return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
+
+    def __get_king_location(self) -> tuple[int, int]:
+        """
+        Returns the current location of the king based on whose turn it is.
+
+        Returns:
+            Tuple[int, int]: The row and column of the king.
+        """
+        return self.white_king_location if self.white_to_move else self.black_king_location
+
+    def __block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> list[tuple[int, int]]:
+        """
+        Returns a list of valid squares to block a check.
+
+        Args:
+            check (Tuple[int, int]): The location of the checking piece.
+            king_row (int): The row of the king.
+            king_col (int): The column of the king.
+
+        Returns:
+            List[Tuple[int, int]]: A list of valid squares to block a check.
+        """
+        check_row: int = check[0]
+        check_col: int = check[1]
+        piece_checking: int = self.board[check_row][check_col]
+
+        if piece_checking[1] == "N":
+            valid_squares: list[tuple[int, int]] = [(check_row, check_col)]
+        else:
+            for i in range(1, 8):
+                # check[2] and check[3] are the direction of the checking piece.
+                valid_square = (
+                    king_row + check[2] * i, king_col + check[3] * i)
+                valid_squares.append(valid_square)
+
+                # once you get to piece and check
+                if valid_square[0] == check_row and valid_square[1] == check_col:
+                    break
+
+        return valid_squares
+
+    def __filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
+        # get rid of any moves that don't block check
+        for i in range(len(moves) - 1, -1, -1):
+            if moves[i].piece_moved[1] != "K":
+                if not (moves[i].end_row, moves[i].end_col) in valid_squares:
+                    moves.remove(moves[i])
+    
+
 
 
 class Color:
