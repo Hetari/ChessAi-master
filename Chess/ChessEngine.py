@@ -1,26 +1,9 @@
 import numpy as np
-from Move import Move
+import Move
 import pygame as p
 
 
 class GameState():
-    """
-    The GameState class keeps track of the chess board, the current player's turn, and the move history. It provides methods to make moves, undo moves, and get all possible moves for the current state of the game.
-
-    Attributes:
-        board: A 2D list representing the chess board.
-        move_functions: A dictionary mapping piece types to their corresponding move functions.
-        white_to_move: A boolean indicating whether it is currently white's turn to move.
-        move_log: A list of Move objects representing the move history.
-
-    Methods:
-        make_move: Makes a move on the chess board.
-        undo_move: Undoes the last move made in the game.
-        get_valid_moves: Returns a list of all valid moves for the current state of the game.
-        get_all_possible_moves: Returns a list of all possible moves for the current state of the game.
-        get_pawn_moves: Generates valid moves for a pawn at a given position.
-    """
-
     def __init__(self) -> None:
         # board is 8x8 2d list, each element of list has 2 characters
         self.board = [
@@ -44,7 +27,7 @@ class GameState():
         }
 
         self.white_to_move: bool = True
-        self.move_log: list[Move] = []
+        self.move_log: list[Move.Move] = []
 
         # Tracking the king location
         self.white_king_location: tuple[int] = (7, 4)
@@ -53,10 +36,7 @@ class GameState():
         self.pins: list = []
         self.checks: list = []
 
-        self.check_mate = False
-        self.stale_mate = False
-
-    def make_move(self, move: Move) -> None:
+    def make_move(self, move: Move.Move) -> None:
         """
         Makes a move on the chess board.
 
@@ -68,23 +48,13 @@ class GameState():
         Returns:
             None
         """
-        # Make the piece location empty
         self.board[move.start_row][move.start_col] = "--"
-
-        # Move the piece to the new location
         self.board[move.end_row][move.end_col] = move.piece_moved
-
-        # Add the new move to the log
         self.move_log.append(move)
-
-        # Toggle the order of moves
         self.white_to_move = not self.white_to_move
 
         # Update the king location
-        if move.piece_moved == "wK":
-            self.white_king_location = (move.end_row, move.end_col)
-        elif move.piece_moved == "bK":
-            self.black_king_location = (move.end_row, move.end_col)
+        self.update_king_location(move.piece_moved, move.end_row, move.end_col)
 
     def undo_move(self):
         """
@@ -101,99 +71,86 @@ class GameState():
             move = self.move_log.pop()
             self.board[move.start_row][move.start_col] = move.piece_moved
             self.board[move.end_row][move.end_col] = move.piece_captured
-            # swap players
             self.white_to_move = not self.white_to_move
 
             # update the king's position if needed
-            if move.piece_moved == "wK":
-                self.white_king_location = (move.start_row, move.start_col)
-            elif move.piece_moved == "bK":
-                self.black_king_location = (move.start_row, move.start_col)
+            self.update_king_location(
+                move.piece_moved, move.end_row, move.end_col)
 
-    def get_valid_moves(self) -> list[Move]:
+    def get_valid_moves(self) -> list[Move.Move]:
         """
         Returns a list of all valid moves for the current state of the game.
 
         This method calls the get_all_possible_moves method to get all possible moves and filters out the invalid moves.
 
         Args:
-            None
+            None+
 
         Returns:
             list[Move]: A list of all valid moves.
         """
-        moves: list[Move] = []
+        moves: list[Move.Move] = []
 
         self.in_check, self.pins, self.checks = self.check_pins_and_checks()
 
         # get the king location depending on whose turn it is
-        king_row, king_col = (
-            self.white_king_location if self.white_to_move else self.black_king_location)
+        king_row, king_col = self.__get_king_location()
 
         if self.in_check == True:
             if len(self.checks) == 1:
                 moves = self.get_all_possible_moves()
                 # to block check you must move a piece into one of the squares between the enemy piece and the king
                 check: tuple[int] = self.checks[0]
-                check_row: int = check[0]
-                check_col: int = check[1]
-                piece_checking: int = self.board[check_row][check_col]
                 valid_squares = []
+                valid_squares = self.__block_check_valid_squares(
+                    check, king_row, king_col)
 
-                if piece_checking[1] == "N":
-                    valid_squares = [(check_row, check_col)]
-                else:
-                    for i in range(1, 8):
-                        # check[2] and check[3] are the direction.
-                        valid_square = (
-                            king_row + check[2] * i, king_col + check[3] * i)
-                        valid_squares.append(valid_square)
-
-                        # once you get to piece and check
-                        if valid_square[0] == check_row and valid_square[1] == check_col:
-                            break
-
-                # get rid of any moves that don't block check
-                for i in range(len(moves) - 1, -1, -1):
-                    if moves[i].piece_moved[1] != "K":
-                        if not (moves[i].end_row, moves[i].end_col) in valid_squares:
-                            moves.remove(moves[i])
+                moves: list[Move.Move] = self.__filter_moves_to_block_check(
+                    moves, valid_squares)
             else:
                 self.get_king_moves(king_row, king_col, moves)
         else:
             moves = self.get_all_possible_moves()
 
-        # if len(moves) == 0:
-        #     if self.inCheck():
-        #         self.check_mate = True
-        #     else:
-        #         self.stale_mate = True
-        # else:
-        #     self.check_mate = False
-        #     self.stale_mate = False
-
         return moves
 
-    def inCheck(self):
-        '''
-        Determine if a current player is in check
-        '''
+    def __block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> list[tuple[int, int]]:
+        """
+        Returns a list of valid squares to block a check.
 
-        def squareUnderAttack(self, row, col):
-            '''
-            Determine if enemy can attack the square row col
-            '''
-            self.white_to_move = not self.white_to_move  # switch to oponent's point of wiev
-            opponents_moves = self.getAllPossibleMoves()
-            self.white_to_move = not self.white_to_move
-            for move in opponents_moves:
-                if move.end_row == row and move.end_col == col:  # square is under attack
-                    return True
-            return False
-        if self.white_to_move:
-            return squareUnderAttack(self.white_king_location[0], self.white_king_location[1])
+        Args:
+            check (Tuple[int, int]): The location of the checking piece.
+            king_row (int): The row of the king.
+            king_col (int): The column of the king.
+
+        Returns:
+            List[Tuple[int, int]]: A list of valid squares to block a check.
+        """
+        check_row: int = check[0]
+        check_col: int = check[1]
+        piece_checking: int = self.board[check_row][check_col]
+
+        if piece_checking[1] == "N":
+            valid_squares: list[tuple[int, int]] = [(check_row, check_col)]
         else:
-            return squareUnderAttack(self.black_king_location[0], self.black_king_location[1])
+            for i in range(1, 8):
+                # check[2] and check[3] are the direction of the checking piece.
+                valid_square = (
+                    king_row + check[2] * i, king_col + check[3] * i)
+                valid_squares.append(valid_square)
+
+                # once you get to piece and check
+                if valid_square[0] == check_row and valid_square[1] == check_col:
+                    break
+
+        return valid_squares
+
+    def __filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
+        # get rid of any moves that don't block check
+        for i in range(len(moves) - 1, -1, -1):
+            if moves[i].piece_moved[1] != "K":
+                if not (moves[i].end_row, moves[i].end_col) in valid_squares:
+                    moves.remove(moves[i])
 
     def check_pins_and_checks(self):
         # squares where the allied pinned is and directions of the pinned piece
@@ -256,8 +213,6 @@ class GameState():
                 else:
                     break
 
-        # knight_moves: tuple[tuple[int]] = (
-        #     (-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1))
         knight_moves = ((-2, -1), (-2, 1), (-1, 2), (1, 2),
                         (2, -1), (2, 1), (-1, -2), (1, -2))
 
@@ -272,7 +227,7 @@ class GameState():
                     checks.append((end_row, end_col, move[0], move[1]))
         return in_check, pins, checks
 
-    def get_all_possible_moves(self) -> list[Move]:
+    def get_all_possible_moves(self) -> list[Move.Move]:
         """
         Get all possible and valid moves for the current state of the game.
 
@@ -289,7 +244,7 @@ class GameState():
                     self.move_functions[piece](row, col, moves)
         return moves
 
-    def get_pawn_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_pawn_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Generate valid moves for a pawn at a given position.
 
@@ -353,7 +308,7 @@ class GameState():
                         moves.append(
                             Move((row, col), (row+1, col+1), self.board))
 
-    def get_rock_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         piece_pinned = False
         pin_direction = ()
         for i in range(len(self.pins)-1, -1, -1):
@@ -387,7 +342,7 @@ class GameState():
                 else:  # off board
                     break
 
-    def get_knight_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_knight_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the knight moves for the given row and column, and update the list of moves accordingly.
 
@@ -421,7 +376,7 @@ class GameState():
                         moves.append(
                             Move((row, col), (end_row, end_col), self.board))
 
-    def get_bishop_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_bishop_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the bishop moves for the given row and column, and update the list of moves accordingly.
 
@@ -464,7 +419,7 @@ class GameState():
                 else:  # off board
                     break
 
-    def get_queen_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the queen moves for the given row and column, and update the list of moves accordingly.
 
@@ -479,7 +434,7 @@ class GameState():
         self.get_bishop_moves(row, col, moves)
         self.get_rock_moves(row, col, moves)
 
-    def get_king_moves(self, row: int, col: int, moves: list[Move]) -> None:
+    def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         row_moves = (-1, -1, -1, 0, 0, 0, 1, 1, 1)
         col_moves = (-1, 0, 1, -1, 0, 1, -1, 0, 1)
         ally_color = "w" if self.white_to_move else "b"
@@ -530,7 +485,7 @@ class GameState():
         """
         return (self.white_to_move and self.board[row][col] in range(1, 7)) or (not self.white_to_move and self.board[row][col] in range(7, 13))
 
-    def get_king_location(self) -> tuple[int, int]:
+    def __get_king_location(self) -> tuple[int, int]:
         """
         Returns the current location of the king based on whose turn it is.
 
@@ -538,6 +493,23 @@ class GameState():
             Tuple[int, int]: The row and column of the king.
         """
         return self.white_king_location if self.white_to_move else self.black_king_location
+
+    def update_king_location(self, king: str, row: int, col: int) -> None:
+        """
+        Updates the location of the king in the board.
+
+        Args:
+            king (str): The name of the king ('wK' or 'bK').
+            row (int): The row of the king's new location.
+            col (int): The column of the king's new location.
+
+        Returns:
+            None
+        """
+        if king == "wK":
+            self.white_king_location = (row, col)
+        elif king == "bK":
+            self.black_king_location = (row, col)
 
 
 class Color:
