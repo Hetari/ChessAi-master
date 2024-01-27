@@ -25,7 +25,9 @@ class Board():
         """
         # Note: we reduce the size of the images by -20 to make them smaller
         # (goto draw_pieces function to see how we make the pieces in the center)
-        for piece in range(1, 13):
+        pieces = ['wp', 'wR', 'wN', 'wB', 'wK',
+                  'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ']
+        for piece in pieces:
             IMAGES[piece] = p.transform.scale(p.image.load(
                 f'{os.getcwd()}/Chess/images/{piece}.png'), (SQ_SIZE - 20, SQ_SIZE - 20))
 
@@ -142,7 +144,7 @@ class Board():
         for row in range(ROWS):
             for col in range(COLS):
                 piece = board[row][col]
-                if piece != 0:
+                if piece != "--":
                     # Here we add 10 to the x and 10 to the y (10 + 10 = 20) coordinates to center the piece on the square
                     screen.blit(IMAGES[piece], p.Rect(
                         col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE

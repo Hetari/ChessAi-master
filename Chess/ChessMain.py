@@ -124,7 +124,6 @@ def main():
 
         # If a move was made, update the valid moves
         if flags["move_flag"]:
-            os.system('cls' if os.name == 'nt' else 'clear')
             print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_flag"] = False
