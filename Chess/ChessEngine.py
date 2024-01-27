@@ -1,6 +1,7 @@
 import numpy as np
-import Move
 import pygame as p
+import Move
+import PawnMoves
 
 
 class GameState():
@@ -106,8 +107,7 @@ class GameState():
                 valid_squares = self.__block_check_valid_squares(
                     check, king_row, king_col)
 
-                moves: list[Move.Move] = self.__filter_moves_to_block_check(
-                    moves, valid_squares)
+                self.__filter_moves_to_block_check(moves, valid_squares)
             else:
                 self.get_king_moves(king_row, king_col, moves)
         else:
@@ -219,59 +219,8 @@ class GameState():
         Returns:
         - None
         """
-        # sourcery skip: merge-nested-ifs
-        piece_pinned = False
-        pin_direction = ()
-        for i in range(len(self.pins)-1, -1, -1):
-            if self.pins[i][0] == row and self.pins[i][1] == col:
-                piece_pinned = True
-                pin_direction = (self.pins[i][2], self.pins[i][3])
-                self.pins.remove(self.pins[i])
-                break
-
-        if self.white_to_move:  # white pawn moves
-            if self.board[row-1][col] == "--":  # 1 square pawn advance
-                if not piece_pinned or pin_direction == (-1, 0):
-                    # (start square, end square, board)
-                    moves.append(
-                        Move.Move((row, col), (row-1, col), self.board))
-                    # 2 square pawn advance
-                    if row == 6 and self.board[row-2][col] == "--":
-                        moves.append(
-                            Move.Move((row, col), (row-2, col), self.board))
-
-            if col - 1 >= 0:  # capturing to the left - impossible if a pawn is standing in a far left column
-                if self.board[row-1][col-1][0] == "b":  # enemy piece to capture
-                    if not piece_pinned or pin_direction == (-1, -1):
-                        moves.append(
-                            Move.Move((row, col), (row-1, col-1), self.board))
-
-            if col + 1 <= 7:  # capturing to the right - analogical
-                if self.board[row-1][col+1][0] == "b":  # enemy piece to capture
-                    if not piece_pinned or pin_direction == (-1, 1):
-                        moves.append(
-                            Move.Move((row, col), (row-1, col+1), self.board))
-
-        else:  # black pawn moves
-            if self.board[row+1][col] == "--":  # 1 suare pawn advance
-                if not piece_pinned or pin_direction == (1, 0):
-                    moves.append(
-                        Move.Move((row, col), (row+1, col), self.board))
-                    if row == 1 and self.board[row+2][col] == "--":
-                        moves.append(
-                            Move.Move((row, col), (row+2, col), self.board))
-
-            if col - 1 >= 0:
-                if self.board[row+1][col-1][0] == "w":
-                    if not piece_pinned or pin_direction == (1, -1):
-                        moves.append(
-                            Move.Move((row, col), (row+1, col-1), self.board))
-
-            if col + 1 <= 7:
-                if self.board[row+1][col+1][0] == "w":
-                    if not piece_pinned or pin_direction == (1, 1):
-                        moves.append(
-                            Move.Move((row, col), (row+1, col+1), self.board))
+        pawn_moves = PawnMoves.Pawn()
+        pawn_moves.pawn_moves(self, self.pins, row, col, moves)
 
     def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         piece_pinned = False
@@ -478,9 +427,9 @@ class GameState():
         check_row: int = check[0]
         check_col: int = check[1]
         piece_checking: int = self.board[check_row][check_col]
-
+        valid_squares: list[tuple[int, int]] = []
         if piece_checking[1] == "N":
-            valid_squares: list[tuple[int, int]] = [(check_row, check_col)]
+            valid_squares = [(check_row, check_col)]
         else:
             for i in range(1, 8):
                 # check[2] and check[3] are the direction of the checking piece.
