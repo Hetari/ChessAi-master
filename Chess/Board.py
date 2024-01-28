@@ -17,7 +17,7 @@ class Board():
         using the 'transform.scale' function from the Pygame library. The scaled image is
         stored in the 'IMAGES' dictionary with the corresponding game piece as the key.
 
-        Parameters:
+        Args:
             `None`
 
         Returns:
@@ -45,9 +45,6 @@ class Board():
         self.draw_board(screen)
         self.draw_board_notations(screen)
         self.draw_pieces(screen, game_state.board)
-
-        # TODO: draw move log
-        # TODO: draw piece highlighting
 
     @staticmethod
     def draw_board(screen: p.Surface) -> None:
@@ -117,14 +114,35 @@ class Board():
                 screen, font, files, color, i)
 
     @staticmethod
-    def draw_rank_notations(screen, font, ranks, color, i):
-        # for i in range(COLS):
+    def draw_rank_notations(screen: p.Surface, font: p.font.Font, ranks: list[str], color: p.Color, i: int) -> None:
+        """
+        Draw rank notations on the screen.
+
+        Args:
+            screen (pygame.Surface): The surface to draw on.
+            font (pygame.font.Font): The font to use for the notations.
+            ranks (list[str]): The list of rank notations to draw.
+            color (pygame.Color): The color of the notations.
+            i (int): The index of the rank notation to draw.
+        """
         notation = font.render(ranks[i], True, p.Color(color))
         screen.blit(notation, (5, i * SQ_SIZE + notation.get_width()))
 
     @staticmethod
-    def draw_file_notations(screen, font, files, color, i):
-        # for i in range(COLS):
+    def draw_file_notations(screen: p.Surface, font: p.font.Font, files: list[str], color: p.Color, i: int) -> None:
+        """
+        Draw file notations on the screen.
+
+        Args:
+            screen (p.Surface): The surface to draw the notations on.
+            font (p.font.Font): The font to use for rendering the notations.
+            files (list[str]): The list of file names to render.
+            color (p.Color): The color to use for rendering the notations.
+            i (int): The index of the file name to render.
+
+        Returns:
+            None
+        """
         notation = font.render(files[i], True, p.Color(color))
         screen.blit(notation, (i * SQ_SIZE + SQ_SIZE -
                     notation.get_width() - 5, HEIGHT - 15))
