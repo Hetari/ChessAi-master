@@ -13,20 +13,19 @@ class Move:
         Returns:
             None
         """
-    ranks_to_row = {
-        0: 8,
-        1: 7,
-        2: 6,
-        3: 5,
-        4: 4,
-        5: 3,
-        6: 2,
-        7: 1,
-        8: 0,
+    ranks_to_rows = {
+        "1": 7,
+        "2": 6,
+        "3": 5,
+        "4": 4,
+        "5": 3,
+        "6": 2,
+        "7": 1,
+        "8": 0
     }
-    row_to_rank = {
+    row_to_ranks = {
         value: key
-        for key, value in ranks_to_row.items()
+        for key, value in ranks_to_rows.items()
     }
 
     files_to_cols = {
@@ -71,9 +70,10 @@ class Move:
             str: The chess notation for the start and end positions.
         """
         # for example it will return c7e5
+        # return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
         return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
-    def get_rank_file(self, row: int, col: int) -> tuple[str, int]:
+    def get_rank_file(self, row: int, col: int) -> str:
         """
         Get the rank and file of a given position.
 
@@ -84,7 +84,7 @@ class Move:
         Returns:
             Tuple[str, int]: The rank and file of the position.
         """
-        return self.cols_to_files[col], self.ranks_to_row[row]
+        return self.cols_to_files[col] + self.row_to_ranks[row]
 
     def __eq__(self, other: object) -> bool:
         return self.move_id == other.move_id if isinstance(other, Move) else False
