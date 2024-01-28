@@ -2,9 +2,20 @@ import numpy as np
 import pygame as p
 import Move
 import PawnMoves
+import RockMoves
+import KnightMoves
+import BishopMoves
+import KingMoves
+import ChessHelper
 
 
-class GameState():
+class GameState(ChessHelper.Helper,
+                PawnMoves.Pawn,
+                RockMoves.Rock,
+                KnightMoves.Knight,
+                BishopMoves.Bishop,
+                KingMoves.King,
+                ):
     def __init__(self) -> None:
         # board is 8x8 2d list, each element of list has 2 characters
         self.board = [
@@ -55,7 +66,7 @@ class GameState():
         self.white_to_move = not self.white_to_move
 
         # Update the king location
-        self.__update_king_location(
+        self.update_king_location(
             move.piece_moved, move.end_row, move.end_col)
 
     def undo_move(self):
@@ -69,15 +80,17 @@ class GameState():
         Returns:
             None
         """
-        if len(self.move_log) != 0:
-            move = self.move_log.pop()
-            self.board[move.start_row][move.start_col] = move.piece_moved
-            self.board[move.end_row][move.end_col] = move.piece_captured
-            self.white_to_move = not self.white_to_move
+        if len(self.move_log) == 0:
+            return
 
-            # update the king's position if needed
-            self.__update_king_location(
-                move.piece_moved, move.end_row, move.end_col)
+        move = self.move_log.pop()
+        self.board[move.start_row][move.start_col] = move.piece_moved
+        self.board[move.end_row][move.end_col] = move.piece_captured
+        self.white_to_move = not self.white_to_move
+
+        # update the king's position if needed
+        self.update_king_location(
+            move.piece_moved, move.end_row, move.end_col)
 
     def get_valid_moves(self) -> list[Move.Move]:
         """
@@ -96,7 +109,7 @@ class GameState():
         self.in_check, self.pins, self.checks = self.check_pins_and_checks()
 
         # get the king location depending on whose turn it is
-        king_row, king_col = self.__get_king_location()
+        king_row, king_col = self.get_king_location()
 
         if self.in_check == True:
             if len(self.checks) == 1:
@@ -104,10 +117,10 @@ class GameState():
                 # to block check you must move a piece into one of the squares between the enemy piece and the king
                 check: tuple[int] = self.checks[0]
                 valid_squares = []
-                valid_squares = self.__block_check_valid_squares(
+                valid_squares = self.block_check_valid_squares(
                     check, king_row, king_col)
 
-                self.__filter_moves_to_block_check(moves, valid_squares)
+                self.filter_moves_to_block_check(moves, valid_squares)
             else:
                 self.get_king_moves(king_row, king_col, moves)
         else:
@@ -116,6 +129,7 @@ class GameState():
         return moves
 
     def check_pins_and_checks(self):
+
         # squares where the allied pinned is and directions of the pinned piece
         pins = []
         # squares where enemy is applied check
@@ -143,7 +157,7 @@ class GameState():
             for i in range(1, 8):
                 end_row = start_row + direction[0] * i
                 end_col = start_col + direction[1] * i
-                if self.__is_valid_position(end_row, end_col):
+                if self.is_valid_position(end_row, end_col):
                     end_piece = self.board[end_row][end_col]
 
                     if end_piece[0] == ally_color and end_piece[1] != "K":
@@ -219,48 +233,27 @@ class GameState():
         Returns:
         - None
         """
-        pawn_moves = PawnMoves.Pawn()
-        pawn_moves.pawn_moves(self, self.pins, row, col, moves)
+        self.pawn_moves(row, col, moves)
 
     def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
-        piece_pinned = False
-        pin_direction = ()
-        for i in range(len(self.pins)-1, -1, -1):
-            if self.pins[i][0] == row and self.pins[i][1] == col:
-                piece_pinned = True
-                pin_direction = (self.pins[i][2], self.pins[i][3])
-                # can't remove queen from pin on rook moves, only remove it on bishop moves
-                if self.board[row][col][1] != "Q":
-                    self.pins.remove(self.pins[i])
-                break
+        """
+        Generates possible moves for a rook at the given row and column and adds them to the moves list.
 
-        # up, left, down, right
-        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
-        enemy_color = "b" if self.white_to_move else "w"
-        for direction in directions:
-            for i in range(1, 8):
-                end_row = row + direction[0] * i
-                end_col = col + direction[1] * i
-                if 0 <= end_row <= 7 and 0 <= end_col <= 7:  # check for possible moves only in boundaries of the board
-                    if not piece_pinned or pin_direction == direction or pin_direction == (-direction[0], -direction[1]):
-                        end_piece = self.board[end_row][end_col]
-                        if end_piece == "--":  # empty space is valid
-                            moves.append(
-                                Move.Move((row, col), (end_row, end_col), self.board))
-                        elif end_piece[0] == enemy_color:  # capture enemy piece
-                            moves.append(
-                                Move.Move((row, col), (end_row, end_col), self.board))
-                            break
-                        else:  # friendly piece
-                            break
-                else:  # off board
-                    break
+        Args:
+            row (int): The row of the rook.
+            col (int): The column of the rook.
+            moves (list[Move.Move]): The list of possible moves to be updated.
+
+        Returns:
+            None
+        """
+        self.rock_moves(row, col, moves)
 
     def get_knight_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the knight moves for the given row and column, and update the list of moves accordingly.
 
-        Parameters:
+        Args:
             start: A tuple representing the start position of the move.
             end: A tuple representing the end position of the move.
             moves: A list of Move objects representing possible moves.
@@ -268,33 +261,13 @@ class GameState():
         Returns:
             None
         """
-        piece_pinned = False
-        for i in range(len(self.pins)-1, -1, -1):
-            if self.pins[i][0] == row and self.pins[i][1] == col:
-                piece_pinned = True
-                self.pins.remove(self.pins[i])
-                break
-
-        # up/left up/right right/up right/down down/left down/right left/up left/down
-        knight_moves = ((-2, -1), (-2, 1), (-1, 2), (1, 2),
-                        (2, -1), (2, 1), (-1, -2), (1, -2))
-        ally_color = "w" if self.white_to_move else "b"
-        for move in knight_moves:
-            end_row = row + move[0]
-            end_col = col + move[1]
-            if 0 <= end_row <= 7 and 0 <= end_col <= 7:
-                if not piece_pinned:
-                    end_piece = self.board[end_row][end_col]
-                    # so it's either enemy piece or empty equare
-                    if end_piece[0] != ally_color:
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
+        self.knight_moves(row, col, moves)
 
     def get_bishop_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the bishop moves for the given row and column, and update the list of moves accordingly.
 
-        Parameters:
+        Args:
             start: A tuple representing the start position of the move.
             end: A tuple representing the end position of the move.
             moves: A list of Move objects representing possible moves.
@@ -302,42 +275,13 @@ class GameState():
         Returns:
             None
         """
-        piece_pinned = False
-        pin_direction = ()
-        for i in range(len(self.pins)-1, -1, -1):
-            if self.pins[i][0] == row and self.pins[i][1] == col:
-                piece_pinned = True
-                pin_direction = (self.pins[i][2], self.pins[i][3])
-                self.pins.remove(self.pins[i])
-                break
-
-        # digaonals: up/left up/right down/right down/left
-        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))
-        enemy_color = "b" if self.white_to_move else "w"
-        for direction in directions:
-            for i in range(1, 8):
-                end_row = row + direction[0] * i
-                end_col = col + direction[1] * i
-                if 0 <= end_row <= 7 and 0 <= end_col <= 7:  # check if the move is on board
-                    if not piece_pinned or pin_direction == direction or pin_direction == (-direction[0], -direction[1]):
-                        end_piece = self.board[end_row][end_col]
-                        if end_piece == "--":  # empty space is valid
-                            moves.append(
-                                Move.Move((row, col), (end_row, end_col), self.board))
-                        elif end_piece[0] == enemy_color:  # capture enemy piece
-                            moves.append(
-                                Move.Move((row, col), (end_row, end_col), self.board))
-                            break
-                        else:  # friendly piece
-                            break
-                else:  # off board
-                    break
+        self.bishop_moves(row, col, moves)
 
     def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Get the queen moves for the given row and column, and update the list of moves accordingly.
 
-        Parameters:
+        Args:
             start: A tuple representing the start position of the move.
             end: A tuple representing the end position of the move.
             moves: A list of Move objects representing possible moves.
@@ -345,74 +289,43 @@ class GameState():
         Returns:
             None
         """
-        self.get_bishop_moves(row, col, moves)
-        self.get_rock_moves(row, col, moves)
+        self.bishop_moves(row, col, moves)
+        self.rock_moves(row, col, moves)
 
     def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
-        row_moves = (-1, -1, -1, 0, 0, 1, 1, 1)
-        col_moves = (-1, 0, 1, -1, 1, -1, 0, 1)
-        ally_color = "w" if self.white_to_move else "b"
+        """
+        Get all the possible moves for the king at the given position and 
+        update the moves array with the valid moves. The parameters are the 
+        row and column of the king, and the list of all available moves. 
+        This function does not return anything.
+        """
+        # self.king_moves(row, col, moves)
+        ally_color: str = "w" if self.white_to_move else "b"
+        row_moves: tuple[int] = (-1, -1, -1, 0, 0, 1, 1, 1)
+        col_moves: tuple[int] = (-1, 0, 1, -1, 1, -1, 0, 1)
+
         for i in range(8):
             end_row = row + row_moves[i]
             end_col = col + col_moves[i]
-            if 0 <= end_row <= 7 and 0 <= end_col <= 7:
+
+            if self.is_valid_position(end_row, end_col):
                 end_piece = self.board[end_row][end_col]
                 if end_piece[0] != ally_color:  # not an ally piece - empty or enemy
                     # place king on end square and check for checks
-                    if ally_color == "w":
-                        self.white_king_location = (end_row, end_col)
-                    else:
-                        self.black_king_location = (end_row, end_col)
+                    self.update_king_location(
+                        f"{ally_color}K", end_row, end_col)
+
                     in_check, pins, checks = self.check_pins_and_checks()
+
                     if not in_check:
                         moves.append(
                             Move.Move((row, col), (end_row, end_col), self.board))
+
                     # place king back on original location
-                    if ally_color == "w":
-                        self.white_king_location = (row, col)
-                    else:
-                        self.black_king_location = (row, col)
+                    self.update_king_location(
+                        f"{ally_color}K", end_row, end_col)
 
-    def __update_king_location(self, king: str, row: int, col: int) -> None:
-        """
-        Updates the location of the king in the board.
-
-        Args:
-            king (str): The name of the king ('wK' or 'bK').
-            row (int): The row of the king's new location.
-            col (int): The column of the king's new location.
-
-        Returns:
-            None
-        """
-        if king == "wK":
-            self.white_king_location = (row, col)
-        elif king == "bK":
-            self.black_king_location = (row, col)
-
-    def __is_valid_position(self, row: int, col: int) -> bool:
-        """
-        Check if the given row and column are valid positions on the board.
-
-        Args:
-        row (int): The row index.
-        col (int): The column index.
-
-        Returns:
-        bool: True if the position is valid, False otherwise.
-        """
-        return 0 <= row < len(self.board) and 0 <= col < len(self.board[0])
-
-    def __get_king_location(self) -> tuple[int, int]:
-        """
-        Returns the current location of the king based on whose turn it is.
-
-        Returns:
-            Tuple[int, int]: The row and column of the king.
-        """
-        return self.white_king_location if self.white_to_move else self.black_king_location
-
-    def __block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> list[tuple[int, int]]:
+    def block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> list[tuple[int, int]]:
         """
         Returns a list of valid squares to block a check.
 
@@ -443,114 +356,9 @@ class GameState():
 
         return valid_squares
 
-    def __filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
+    def filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
         # get rid of any moves that don't block check
         for i in range(len(moves) - 1, -1, -1):
             if moves[i].piece_moved[1] != "K":
                 if not (moves[i].end_row, moves[i].end_col) in valid_squares:
                     moves.remove(moves[i])
-
-
-class Color:
-    """
-    class Color:
-    Represents a color with a light and dark shade.
-
-    Args:
-        light: The light shade of the color.
-        dark: The dark shade of the color.
-    """
-
-    def __init__(self, light: tuple[int], dark: tuple[int]):
-        self.light: tuple[int] = light
-        self.dark: tuple[int] = dark
-
-
-class Theme:
-    """
-    Represents a theme for a chess game.
-
-    Args:
-        light_bg: The light background color.
-        dark_bg: The dark background color.
-        light_trace: The light color for trace lines.
-        dark_trace: The dark color for trace lines.
-        light_moves: The light color for move indicators.
-        dark_moves: The dark color for move indicators.
-    """
-
-    def __init__(self, light_bg: int, dark_bg: int,
-                 light_trace: int, dark_trace: int,
-                 light_moves: int, dark_moves: int):
-        self.bg: Color = Color(light_bg, dark_bg)
-        self.trace: Color = Color(light_trace, dark_trace)
-        self.moves: Color = Color(light_moves, dark_moves)
-
-
-class Config():
-    """
-    Represents the configuration for a chess game.
-
-    Attributes:
-        themes: A list of available themes.
-        idx: The index of the current theme.
-        theme: The current theme.
-
-    Methods:
-        change_theme: Changes the current theme to the next one.
-    """
-
-    def __init__(self):
-        self.themes: list[Theme] = []
-        self._add_themes()
-        self.idx: int = 0
-        self.theme: Theme = self.themes[self.idx]
-
-    def change_theme(self):
-        """
-        Changes the current theme to the next one.
-        """
-        self.idx += 1
-        self.idx %= len(self.themes)
-        self.theme = self.themes[self.idx]
-
-    def _add_themes(self):
-        """
-        Adds predefined themes to the list of available themes.
-        """
-        green: Theme = Theme(
-            (234, 235, 200),
-            (119, 154, 88),
-            (244, 247, 116),
-            (172, 195, 51),
-            '#C86464',
-            '#C84646',
-        )
-
-        brown: Theme = Theme(
-            (235, 209, 166),
-            (165, 117, 80),
-            (245, 234, 100),
-            (209, 185, 59),
-            '#C86464',
-            '#C84646',
-        )
-        blue: Theme = Theme(
-            (229, 228, 200),
-            (60, 95, 135),
-            (123, 187, 227),
-            (43, 119, 191),
-            '#C86464',
-            '#C84646',
-        )
-
-        gray: Theme = Theme(
-            (120, 119, 118),
-            (86, 85, 84),
-            (99, 126, 143),
-            (82, 102, 128),
-            '#C86464',
-            '#C84646',
-        )
-
-        self.themes = [green, brown, blue, gray]
