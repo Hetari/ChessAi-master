@@ -14,8 +14,7 @@ class Knight:
         Returns:
             None
         """
-        piece_pinned, _ = self.check_pawn_bishop_knight_pin(
-            self.pins, row, col)
+        piece_pinned, _ = self.check_pawn_bishop_knight_pin(row, col)
 
         # up/left up/right right/up right/down down/left down/right left/up left/down
         knight_moves = ((-2, -1), (-2, 1), (-1, 2), (1, 2),

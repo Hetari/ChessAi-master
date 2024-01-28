@@ -39,7 +39,7 @@ class Helper:
         """
         return self.white_king_location if self.white_to_move else self.black_king_location
 
-    def check_pawn_bishop_knight_pin(self, pins, row, col):
+    def check_pawn_bishop_knight_pin(self, row, col):
         """
         Check if a piece is pinned by any pins at the specified row and column.
 
@@ -49,18 +49,18 @@ class Helper:
         col: Column of the piece.
 
         Returns:
-        Tuple containing a boolean representing if the piece is pinned and the direction of the pin if it is pinned.
+        Tuple containing a boolean representing if the piece is pinned and the direction of the pin if it is pinned, `piece_pinned, pin_direction`
         """
 
         piece_pinned = False
         pin_direction = ()
 
-        for i in range(len(pins) - 1, -1, -1):
+        for i in range(len(self.pins) - 1, -1, -1):
             # Check if the pin is at the specified row and column
-            if pins[i][0] == row and pins[i][1] == col:
+            if self.pins[i][0] == row and self.pins[i][1] == col:
                 # Remove the pin from the list, because it is pinned and we can't move it
                 piece_pinned = True
-                pin_direction = (pins[i][2], pins[i][3])
-                pins.remove(pins[i])
+                pin_direction = (self.pins[i][2], self.pins[i][3])
+                self.pins.remove(self.pins[i])
                 break
         return piece_pinned, pin_direction

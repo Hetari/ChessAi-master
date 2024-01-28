@@ -17,7 +17,7 @@ class Pawn():
         """
         # Check if the pawn is pinned and get the pin direction
         piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
-            self.pins, row, col)
+            row, col)
 
         if self.white_to_move:
             if self.is_valid_position(row - 1, col) and self.board[row - 1][col] == "--":

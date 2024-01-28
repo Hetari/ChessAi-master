@@ -4,7 +4,7 @@ import Move
 class Bishop:
     def bishop_moves(self, row, col, moves):
         piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
-            self.pins, row, col)
+            row, col)
 
         directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))
 

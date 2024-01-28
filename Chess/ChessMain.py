@@ -8,7 +8,7 @@ import sys
 
 
 def initialize_game():
-    flags = {'running': True, 'move_flag': False}
+    flags = {'running': True, 'move_made': False}
     p.init()
     screen = p.display.set_mode((WIDTH, HEIGHT))
     clock = p.time.Clock()
@@ -38,7 +38,7 @@ def handle_key_events(event: p.event.Event, game_state: ChessEngine.GameState, f
         elif event.key == p.K_z:
             game_state.undo_move()
             square_selected, player_clicks = (), []
-            flags["move_flag"] = True
+            flags["move_made"] = True
     return square_selected, player_clicks
 
 
@@ -84,13 +84,15 @@ def handle_mouse_events(event: p.event, square_selected: tuple[int, int], player
             # Create a Move object using the player clicks and check if it's a valid move
             move = Move.Move(player_clicks[0],
                              player_clicks[1], game_state.board)
-            if move in valid_moves:
-                # If it's a valid move, make the move in the game state and set the move flag
-                print(move.get_chess_notation())
-                game_state.make_move(move)
-                flags["move_flag"] = True
-                square_selected, player_clicks = (), []
-            else:
+            for i in range(len(valid_moves)):
+                if move == valid_moves[i]:
+                    # If it's a valid move, make the move in the game state and set the move flag
+                    print(move.get_chess_notation())
+                    game_state.make_move(move)
+                    flags["move_made"] = True
+                    square_selected, player_clicks = (), []
+
+            if not flags["move_made"]:
                 player_clicks = [square_selected]
     # if there is not a mouse click event we will return square_selected and player_clicks that passed in the function
     return square_selected, player_clicks
@@ -116,18 +118,18 @@ def main():
                 handle_quit(flags)
 
             # Key handler
-            square_selected, player_clicks = handle_key_events(event, game_state, flags,
-                                                               square_selected, player_clicks)
+            square_selected, player_clicks = handle_key_events(
+                event, game_state, flags, square_selected, player_clicks)
 
             # Mouse handler
             square_selected, player_clicks = handle_mouse_events(
                 event, square_selected, player_clicks, game_state, valid_moves, flags)
 
         # If a move was made, update the valid moves
-        if flags["move_flag"]:
+        if flags["move_made"]:
             print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
-            flags["move_flag"] = False
+            flags["move_made"] = False
             print("valid_moves 2: ", len(valid_moves))
             # clear the console
 

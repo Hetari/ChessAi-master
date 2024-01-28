@@ -45,21 +45,28 @@ class Move:
 
     def __init__(self, start_square: tuple, end_square: tuple, board: np.ndarray) -> None:
         # From
-        self.start_row = start_square[0]
-        self.start_col = start_square[1]
+        self.start_row: int = start_square[0]
+        self.start_col: int = start_square[1]
 
         # To:
-        self.end_row = end_square[0]
-        self.end_col = end_square[1]
+        self.end_row: int = end_square[0]
+        self.end_col: int = end_square[1]
 
         # What is moving?
-        self.piece_moved = board[self.start_row][self.start_col]
+        self.piece_moved: str = board[self.start_row][self.start_col]
 
         # The moving piece eat this:
-        self.piece_captured = board[self.end_row][self.end_col]
+        self.piece_captured: str = board[self.end_row][self.end_col]
+
+        self.is_pawn_promotion: bool = False
+
+        if (self.piece_moved == "wp" and self.end_row == 0) or \
+                (self.piece_moved == "bp" and self.end_row == 7):
+            self.is_pawn_promotion = True
 
         # Id
-        self.move_id = self.start_row * 1000 + self.start_col * \
+        # The \ is not an operation, it is allow me to write the rest of code in a new line
+        self.move_id: int = self.start_row * 1000 + self.start_col * \
             100 + self.end_row * 10 + self.end_col
 
     def get_chess_notation(self) -> str:
