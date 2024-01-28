@@ -5,7 +5,7 @@ class Move:
     """
         Initializes an instance of the class.
 
-        Parameters:
+        Args:
             start_square (tuple): The starting square coordinates (row, column).
             end_square (tuple): The ending square coordinates (row, column).
             board (np.ndarray): The game board.
