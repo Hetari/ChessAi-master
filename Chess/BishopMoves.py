@@ -3,7 +3,8 @@ import Move
 
 class Bishop:
     def bishop_moves(self, row, col, moves):
-        piece_pinned, pin_direction = self.check_pawn_pin(self.pins, row, col)
+        piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
+            self.pins, row, col)
 
         directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))
 
@@ -31,7 +32,7 @@ class Bishop:
                         moves.append(
                             Move.Move((row, col), (end_row, end_col), self.board))
                         break
-                    
+
                     # friendly piece
-                    else:  
+                    else:
                         break
