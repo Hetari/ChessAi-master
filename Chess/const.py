@@ -1,4 +1,4 @@
-from ChessEngine import Config
+from Config import Config
 
 
 WIDTH = HEIGHT = 800  # 400 is another option
