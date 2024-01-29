@@ -16,53 +16,69 @@ class Pawn():
             None
         """
         # Check if the pawn is pinned and get the pin direction
-        piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
-            row, col)
+        # piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
+        #     row, col)
+
+        piece_pinned = False
+        pin_direction = ()
+        for i in range(len(self.pins)-1, -1, -1):
+            if self.pins[i][0] == row and self.pins[i][1] == col:
+                piece_pinned = True
+                pin_direction = (self.pins[i][2], self.pins[i][3])
+                self.pins.reMove.Move(self.pins[i])
+                break
 
         if self.white_to_move:
-            if self.is_valid_position(row - 1, col) and self.board[row - 1][col] == "--":
-                if not piece_pinned or pin_direction == (-1, 0):
-                    moves.append(
-                        Move.Move((row, col), (row - 1, col), self.board))
-                    # Double move for first move
-                    if row == 6 and self.board[row - 2][col] == "--":
-                        moves.append(
-                            Move.Move((row, col), (row - 2, col), self.board))
-
-            # Check for capturing moves to the left and add them to the list
-            if col - 1 >= 0:
-                if self.is_valid_position(row - 1, col - 1) and self.board[row - 1][col - 1][0] == "b":
-                    if not piece_pinned or pin_direction == (-1, -1):
-                        moves.append(
-                            Move.Move((row, col), (row - 1, col - 1), self.board))
-
-            # Check for capturing moves to the right and add them to the list
-            if col + 1 <= 7:
-                if self.is_valid_position(row - 1, col + 1) and self.board[row - 1][col + 1][0] == "b":
-                    if not piece_pinned or pin_direction == (-1, 1):
-                        moves.append(
-                            Move.Move((row, col), (row - 1, col + 1), self.board))
-
+            move_amount = -1
+            start_row = 6
+            back_row = 0
+            enemy_color = "b"
         else:
-            if self.is_valid_position(row + 1, col) and self.board[row + 1][col] == "--":
-                if not piece_pinned or pin_direction == (1, 0):
+            move_amount = 1
+            start_row = 1
+            back_row = 7
+            enemy_color = "w"
+
+        pawn_promotion = False
+        if self.board[row + move_amount][col] == "--":  # 1 square pawn advance
+            if not piece_pinned or pin_direction == (move_amount, 0):
+                if row + move_amount == back_row:
+                    pawn_promotion = True
+
+                moves.append(
+                    Move.Move((row, col), (row + move_amount, col), self.board, is_pawn_promotion=pawn_promotion))
+
+                # 2 square pawn advance
+                if row == start_row and self.board[row + 2 * move_amount][col] == "--":
                     moves.append(
-                        Move.Move((row, col), (row + 1, col), self.board))
-                    # Moving two squares forward if in starting position
-                    if row == 1 and self.board[row + 2][col] == "--":
-                        moves.append(
-                            Move.Move((row, col), (row + 2, col), self.board))
+                        Move.Move((row, col), (row + 2 * move_amount, col), self.board))
+        if col - 1 >= 0:  # capture to the left
+            if not piece_pinned or pin_direction == (move_amount, -1):
+                if row + move_amount == back_row:
+                    pawn_promotion = True
 
-            # Capturing diagonally to the left
-            if col - 1 >= 0:
-                if self.is_valid_position(row + 1, col - 1) and self.board[row + 1][col - 1][0] == "w":
-                    if not piece_pinned or pin_direction == (1, -1):
-                        moves.append(
-                            Move.Move((row, col), (row + 1, col - 1), self.board))
+                if self.board[row + move_amount][col - 1][0] == enemy_color:
+                    moves.append(
+                        Move.Move((row, col), (row + move_amount, col - 1), self.board, is_pawn_promotion=pawn_promotion))
 
-            # Capturing diagonally to the right
-            if col + 1 <= 7:
-                if self.is_valid_position(row + 1, col + 1) and self.board[row + 1][col + 1][0] == "w":
-                    if not piece_pinned or pin_direction == (1, 1):
-                        moves.append(
-                            Move.Move((row, col), (row + 1, col + 1), self.board))
+                if (row + move_amount, col - 1) == self.en_passant_possible:
+                    print("en passant available")
+
+                    moves.append(
+                        Move.Move((row, col), (row + move_amount, col - 1), self.board, is_en_passant_move=True))
+
+        if col + 1 <= 7:  # capture to the right
+            if not piece_pinned or pin_direction == (move_amount, +1):
+                if row + move_amount == back_row:
+                    pawn_promotion = True
+
+                if self.board[row + move_amount][col + 1][0] == enemy_color:
+                    print("en passant available")
+                    moves.append(
+                        Move.Move((row, col), (row + move_amount, col + 1), self.board, is_pawn_promotion=pawn_promotion))
+
+                if (row + move_amount, col + 1) == self.en_passant_possible:
+                    print("en passant available")
+
+                    moves.append(
+                        Move.Move((row, col), (row + move_amount,  col + 1), self.board, is_en_passant_move=True))
