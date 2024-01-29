@@ -1,5 +1,3 @@
-import numpy as np
-import pygame as p
 import Move
 import PawnMoves
 import RockMoves
@@ -44,9 +42,16 @@ class GameState(ChessHelper.Helper,
         # Tracking the king location
         self.white_king_location: tuple[int] = (7, 4)
         self.black_king_location: tuple[int] = (0, 4)
+
+        # Tracking the pins, checks, and checkmate
+        self.check_mate: bool = False
+        self.stale_mate: bool = False
         self.in_check: bool = False
         self.pins: list = []
         self.checks: list = []
+
+        # coordinates for the square where en passant capture is possible
+        self.en_passant_possible: tuple = ()
 
     def make_move(self, move: Move.Move) -> None:
         """
@@ -65,12 +70,28 @@ class GameState(ChessHelper.Helper,
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
 
-        # Update the king location
+        # Update the king location, if the move.piece_moved is king
         self.update_king_location(
             move.piece_moved, move.end_row, move.end_col)
 
+        # if pawn moves twice, next move can capture en passant
+        if move.piece_moved[1] == "p" and abs(move.start_row - move.end_row) == 2:
+            self.en_passant_possible = (
+                (move.start_row + move.end_row) // 2, move.start_col)
+        else:
+            self.en_passant_possible = ()
+
+        # if en passant move, must update the board to capture the pawn
+        if move.is_en_passant_move:
+            print(f"is_en_passant_move {move.is_en_passant_move}")
+            self.board[move.start_row][move.end_col] = "--"
+
+        # if pawn promotion, change piece
         if move.is_pawn_promotion:
-            self.board[move.end_row][move.end_col] = f"{move.piece_moved[0]}Q"
+            # TODO ask for a piece in UI (Q, R, B, or N)
+            promoted_piece: str = input("Promote to Q, R, B, or N:").upper()
+            self.board[move.end_row][move.end_col] = move.piece_moved[0] + \
+                promoted_piece
 
     def undo_move(self):
         """
@@ -94,6 +115,20 @@ class GameState(ChessHelper.Helper,
         # update the king's position if needed
         self.update_king_location(
             move.piece_moved, move.end_row, move.end_col)
+
+        # undo the en passant move, it is different
+        if move.is_en_passant_move:
+            # leave landing square blank
+            self.board[move.end_row][move.end_col] = "--"
+            self.board[move.start_row][move.end_col] = move.piece_captured
+            self.en_passant_possible = (move.end_row, move.end_col)
+
+        # undo a 2 square pawn advance should make en_passant_possible = () again
+        if move.piece_moved[1] == "p" and abs(move.start_row - move.end_row) == 2:
+            self.en_passant_possible = ()
+
+        # self.check_mate = False
+        # self.stale_mate = False
 
     def get_valid_moves(self) -> list[Move.Move]:
         """
@@ -131,12 +166,44 @@ class GameState(ChessHelper.Helper,
             # not in check - all moves are fine
             moves = self.get_all_possible_moves()
 
+        # if len(moves) == 0:
+        #     if self.in_check_function():
+        #         self.check_mate = True
+        #     else:
+        #         # TODO stalemate on repeated moves
+        #         self.stale_mate = True
+        # else:
+        #     self.check_mate = False
+        #     self.stale_mate = False
+
         return moves
+
+    # def in_check_function(self):
+    #     '''
+    #     Determine if a current player is in check
+    #     '''
+    #     if self.white_to_move:
+    #         return self.square_under_attack(self.white_king_location[0], self.white_king_location[1])
+    #     else:
+    #         return self.square_under_attack(self.black_king_location[0], self.black_king_location[1])
+
+    # def square_under_attack(self, row, col):
+    #     '''
+    #     Determine if enemy can attack the square row col
+    #     '''
+    #     self.white_to_move = not self.white_to_move  # switch to opponent's point of view
+    #     opponents_moves = self.getAllPossibleMoves()
+    #     self.white_to_move = not self.white_to_move
+    #     for move in opponents_moves:
+    #         if move.end_row == row and move.end_col == col:  # square is under attack
+    #             return True
+    #     return False
 
     def check_pins_and_checks(self):
         pins = []  # squares pinned and the direction it's pinned from
         checks = []  # squares where enemy is applying a check
         in_check = False
+
         if self.white_to_move:
             enemy_color = "b"
             ally_color = "w"
@@ -156,7 +223,7 @@ class GameState(ChessHelper.Helper,
             for i in range(1, 8):
                 end_row = start_row + direction[0] * i
                 end_col = start_col + direction[1] * i
-                if 0 <= end_row <= 7 and 0 <= end_col <= 7:
+                if self.is_valid_position(end_row, end_col):
                     end_piece = self.board[end_row][end_col]
                     if end_piece[0] == ally_color and end_piece[1] != "K":
                         if possible_pin == ():  # first allied piece could be pinned
@@ -191,7 +258,7 @@ class GameState(ChessHelper.Helper,
         for move in knight_moves:
             end_row = start_row + move[0]
             end_col = start_col + move[1]
-            if 0 <= end_row <= 7 and 0 <= end_col <= 7:
+            if self.is_valid_position(end_row, end_col):
                 end_piece = self.board[end_row][end_col]
                 # enemy knight attacking a king
                 if end_piece[0] == enemy_color and end_piece[1] == "N":
@@ -228,6 +295,7 @@ class GameState(ChessHelper.Helper,
         Returns:
         - None
         """
+
         self.pawn_moves(row, col, moves)
 
     def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
