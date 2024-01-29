@@ -88,7 +88,7 @@ def handle_mouse_events(event: p.event, square_selected: tuple[int, int], player
                 if move == valid_moves[i]:
                     # If it's a valid move, make the move in the game state and set the move flag
                     print(move.get_chess_notation())
-                    game_state.make_move(move)
+                    game_state.make_move(valid_moves[i])
                     flags["move_made"] = True
                     square_selected, player_clicks = (), []
 
@@ -127,10 +127,10 @@ def main():
 
         # If a move was made, update the valid moves
         if flags["move_made"]:
-            print("valid_moves 1: ", len(valid_moves))
+            # print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
-            print("valid_moves 2: ", len(valid_moves))
+            # print("valid_moves 2: ", len(valid_moves))
             # clear the console
 
         board.draw_game_state(screen, game_state)
