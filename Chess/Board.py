@@ -148,13 +148,13 @@ class Board():
                     notation.get_width() - 5, HEIGHT - 15))
 
     @staticmethod
-    def draw_pieces(screen: p.Surface, board: np.ndarray) -> None:
+    def draw_pieces(screen: p.Surface, board: list[str]) -> None:
         """
         Draw the pieces on the board.
 
         Args:
             screen (p.Surface): The surface object representing the screen to draw on.
-            board (np.ndarray): The current board state.
+            board (list[str]): The current board state.
 
         Returns:
             None
