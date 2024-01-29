@@ -23,7 +23,7 @@ class Knight:
         for move in knight_moves:
             end_row = row + move[0]
             end_col = col + move[1]
-            if 0 <= end_row <= 7 and 0 <= end_col <= 7:
+            if self.is_valid_position(end_row, end_col):
                 if not piece_pinned:
                     end_piece = self.board[end_row][end_col]
                     # so it's either enemy piece or empty equare
