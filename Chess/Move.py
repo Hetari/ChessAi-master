@@ -8,7 +8,7 @@ class Move:
         Args:
             start_square (tuple): The starting square coordinates (row, column).
             end_square (tuple): The ending square coordinates (row, column).
-            board (np.ndarray): The game board.
+            board (list[str]): The game board.
 
         Returns:
             None
@@ -43,26 +43,20 @@ class Move:
         for key, value in files_to_cols.items()
     }
 
-    def __init__(self, start_square: tuple, end_square: tuple, board: np.ndarray) -> None:
-        # From
+    def __init__(self, start_square: tuple, end_square: tuple, board: list[str], is_en_passant_move=False, is_pawn_promotion=False) -> None:
         self.start_row: int = start_square[0]
         self.start_col: int = start_square[1]
-
-        # To:
         self.end_row: int = end_square[0]
         self.end_col: int = end_square[1]
-
-        # What is moving?
         self.piece_moved: str = board[self.start_row][self.start_col]
-
-        # The moving piece eat this:
         self.piece_captured: str = board[self.end_row][self.end_col]
 
-        self.is_pawn_promotion: bool = False
-
-        if (self.piece_moved == "wp" and self.end_row == 0) or \
-                (self.piece_moved == "bp" and self.end_row == 7):
-            self.is_pawn_promotion = True
+        # self.is_pawn_promotion: bool = (self.piece_moved == "wp" and self.end_row == 0) or (
+        #     self.piece_moved == "bp" and self.end_row == 7)
+        self.is_pawn_promotion: bool = is_pawn_promotion
+        self.is_en_passant_move: bool = is_en_passant_move
+        if self.is_en_passant_move:
+            self.piece_captured = "wp" if self.piece_moved == "bp" else "bp"
 
         # Id
         # The \ is not an operation, it is allow me to write the rest of code in a new line
