@@ -104,6 +104,19 @@ class GameState(ChessHelper.Helper,
             self.board[move.end_row][move.end_col] = move.piece_moved[0] + \
                 promoted_piece
 
+        # Castle moves
+        if move.is_castle_move:
+            # king  side castle
+            if move.end_col - move.start_col == 2:
+                self.board[move.end_row][move.end_col -
+                                         1] = self.board[move.end_row][move.end.col + 1]
+                self.board[move.end_row][move.end_col + 1] = "--"
+
+            else:
+                self.board[move.end_row][move.end_col +
+                                         1] = self.board[move.end_row][move.end.col - 2]
+                self.board[move.end_row][move.end_col - 2] = "--"
+
         # Updating the castling rights
         self.update_castle_rights()
 
@@ -144,6 +157,17 @@ class GameState(ChessHelper.Helper,
         # undo castling rights
         self.current_castle_rights.pop()
         self.current_castle_rights = self.castle_rights_log[-1]
+
+        # undo castling moves
+        if move.is_castle_move:
+            if move.end_col - move.start_col == 2:
+                self.board[move.end_row][move.end_col +
+                                         1] = self.board[move.end_row][move.end_col - 1]
+                self.board[move.end_row][move.end_col - 1] = "--"
+            else:
+                self.board[move.end_row][move.end_col -
+                                         2] = self.board[move.end_row][move.end.col + 1]
+                self.board[move.end_row][move.end_col + 1] = "--"
 
         # self.check_mate = False
         # self.stale_mate = False
@@ -441,7 +465,7 @@ class GameState(ChessHelper.Helper,
 
     def get_castle_moves(self, row: int, col: int, moves: list[Move.Move], ally_color: str) -> None:
         # if king in check
-        if self.in_check_function():
+        if self.square_under_attack(row, col):
             return
 
         if (self.white_to_move and self.current_castle_rights.white_king_side) or (not self.white_to_move and self.current_castle_rights.black_king_side):
