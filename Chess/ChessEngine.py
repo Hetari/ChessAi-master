@@ -215,38 +215,39 @@ class GameState(ChessHelper.Helper,
             # not in check - all moves are fine
             moves = self.get_all_possible_moves()
 
-        # if len(moves) == 0:
-        #     if self.in_check_function():
-        #         self.check_mate = True
-        #     else:
-        #         # TODO stalemate on repeated moves
-        #         self.stale_mate = True
-        # else:
-        #     self.check_mate = False
-        #     self.stale_mate = False
+        if len(moves) == 0:
+            if self.in_check_function():
+                self.check_mate = True
+            else:
+                # TODO stalemate on repeated moves
+                self.stale_mate = True
+        else:
+            self.check_mate = False
+            self.stale_mate = False
 
         return moves
 
-    # def in_check_function(self):
-    #     '''
-    #     Determine if a current player is in check
-    #     '''
-    #     if self.white_to_move:
-    #         return self.square_under_attack(self.white_king_location[0], self.white_king_location[1])
-    #     else:
-    #         return self.square_under_attack(self.black_king_location[0], self.black_king_location[1])
+    def in_check_function(self) -> bool:
+        """
+        Determine if a current player is in check
+        """
+        king_row, king_col = self.get_king_location()
+        return self.square_under_attack(king_row, king_col)
 
-    # def square_under_attack(self, row, col):
-    #     '''
-    #     Determine if enemy can attack the square row col
-    #     '''
-    #     self.white_to_move = not self.white_to_move  # switch to opponent's point of view
-    #     opponents_moves = self.getAllPossibleMoves()
-    #     self.white_to_move = not self.white_to_move
-    #     for move in opponents_moves:
-    #         if move.end_row == row and move.end_col == col:  # square is under attack
-    #             return True
-    #     return False
+    def square_under_attack(self, row, col):
+        """
+        Determine if enemy can attack the square row col
+        """
+        # switch to opponent's point of view
+        self.white_to_move = not self.white_to_move  
+        opponents_moves = self.get_all_possible_moves()
+        self.white_to_move = not self.white_to_move
+        
+        for move in opponents_moves:
+            if move.end_row == row and move.end_col == col:  
+                # square is under attack
+                return True
+        return False
 
     def check_pins_and_checks(self):
         pins = []  # squares pinned and the direction it's pinned from
