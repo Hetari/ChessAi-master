@@ -19,14 +19,8 @@ class Pawn():
         # piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
         #     row, col)
 
-        piece_pinned = False
-        pin_direction = ()
-        for i in range(len(self.pins)-1, -1, -1):
-            if self.pins[i][0] == row and self.pins[i][1] == col:
-                piece_pinned = True
-                pin_direction = (self.pins[i][2], self.pins[i][3])
-                self.pins.reMove.Move(self.pins[i])
-                break
+        piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
+            row, col)
 
         if self.white_to_move:
             move_amount = -1
