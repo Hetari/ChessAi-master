@@ -1,3 +1,4 @@
+import Castle
 import Move
 import PawnMoves
 import RockMoves
@@ -53,6 +54,16 @@ class GameState(ChessHelper.Helper,
         # coordinates for the square where en passant capture is possible
         self.en_passant_possible: tuple = ()
 
+        # CastleRights
+        self.current_castle_rights: Castle.CastleRights = Castle.CastleRights(
+            True, True, True, True)
+        self.castle_rights_log = [Castle.CastleRights(
+            self.current_castle_rights.white_king_side,
+            self.current_castle_rights.black_king_side,
+            self.current_castle_rights.white_queen_side,
+            self.current_castle_rights.black_queen_side,
+        )]
+
     def make_move(self, move: Move.Move) -> None:
         """
         Makes a move on the chess board.
@@ -93,6 +104,9 @@ class GameState(ChessHelper.Helper,
             self.board[move.end_row][move.end_col] = move.piece_moved[0] + \
                 promoted_piece
 
+        # Updating the castling rights
+        self.update_castle_rights()
+
     def undo_move(self):
         """
         Undoes the last move made in the game.
@@ -127,8 +141,43 @@ class GameState(ChessHelper.Helper,
         if move.piece_moved[1] == "p" and abs(move.start_row - move.end_row) == 2:
             self.en_passant_possible = ()
 
+        # undo castling rights
+        self.current_castle_rights.pop()
+        self.current_castle_rights = self.castle_rights_log[-1]
+
         # self.check_mate = False
         # self.stale_mate = False
+
+    def update_castle_rights(self, move: Move.Move) -> None:
+        if move.piece_moved == "wK":
+            self.current_castle_rights.white_king_side = False
+            self.current_castle_rights.white_queen_side = False
+
+        elif move.piece_moved == "bK":
+            self.current_castle_rights.black_king_side = False
+            self.current_castle_rights.black_queen_side = False
+
+        elif move.piece_moved == "wR":
+            if move.start_row == 7:
+                if move.start_col == 0:
+                    self.current_castle_rights.white_queen_side = False
+                elif move.start_col == 7:
+                    self.current_castle_rights.white_king_side = False
+
+        elif move.piece_moved == "bR":
+            if move.start_row == 0:
+                if move.start_col == 0:
+                    self.current_castle_rights.white_queen_side = False
+                elif move.start_col == 7:
+                    self.current_castle_rights.white_king_side = False
+
+        self.castle_rights_log.append(
+            Castle.CastleRights(
+                self.current_castle_rights.white_king_side,
+                self.current_castle_rights.black_king_side,
+                self.current_castle_rights.white_queen_side,
+                self.current_castle_rights.black_queen_side,
+            ))
 
     def get_valid_moves(self) -> list[Move.Move]:
         """
@@ -387,6 +436,12 @@ class GameState(ChessHelper.Helper,
                     # place king back on original location
                     self.update_king_location(
                         f"{ally_color}K", row, col)
+        self.get_castle_moves(row, col, moves, ally_color)
+
+    def get_castle_moves(self, row: int, col: int, moves: list[Move.Move], ally_color: str) -> None:
+        # if king in check
+        in_check
+        if not in_check:
 
     def block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> None:
         """
