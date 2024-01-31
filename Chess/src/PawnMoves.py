@@ -1,4 +1,4 @@
-import Move
+import src.Move as Move
 
 
 class Pawn():

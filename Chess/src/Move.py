@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class Move:
     """
         Initializes an instance of the class.

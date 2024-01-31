@@ -1,11 +1,11 @@
-import Castle
-import Move
-import PawnMoves
-import RockMoves
-import KnightMoves
-import BishopMoves
-import KingMoves
-import ChessHelper
+import src.Castle as Castle
+import src.Move as Move
+import src.PawnMoves as PawnMoves
+import src.RockMoves as RockMoves
+import src.KnightMoves as KnightMoves
+import src.BishopMoves as BishopMoves
+import src.KingMoves as KingMoves
+import src.ChessHelper as ChessHelper
 
 
 class GameState(ChessHelper.Helper,

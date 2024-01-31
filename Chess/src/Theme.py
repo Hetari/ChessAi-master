@@ -1,4 +1,4 @@
-from Color import Color
+from src.Color import Color
 
 
 class Theme:

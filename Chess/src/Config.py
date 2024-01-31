@@ -1,4 +1,4 @@
-from Theme import Theme
+from src.Theme import Theme
 
 
 class Config():
