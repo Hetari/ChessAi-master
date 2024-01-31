@@ -239,12 +239,12 @@ class GameState(ChessHelper.Helper,
         Determine if enemy can attack the square row col
         """
         # switch to opponent's point of view
-        self.white_to_move = not self.white_to_move  
+        self.white_to_move = not self.white_to_move
         opponents_moves = self.get_all_possible_moves()
         self.white_to_move = not self.white_to_move
-        
+
         for move in opponents_moves:
-            if move.end_row == row and move.end_col == col:  
+            if move.end_row == row and move.end_col == col:
                 # square is under attack
                 return True
         return False
@@ -441,8 +441,36 @@ class GameState(ChessHelper.Helper,
 
     def get_castle_moves(self, row: int, col: int, moves: list[Move.Move], ally_color: str) -> None:
         # if king in check
-        in_check
-        if not in_check:
+        if self.in_check_function():
+            return
+
+        if (self.white_to_move and self.current_castle_rights.white_king_side) or (not self.white_to_move and self.current_castle_rights.black_king_side):
+            self.get_king_side_castle_moves(row, col, moves, ally_color)
+
+        if (self.white_to_move and self.current_castle_rights.white_queen_side) or (not self.white_to_move and self.current_castle_rights.black_queen_side):
+            self.get_queen_side_castle_moves(row, col, moves, ally_color)
+
+    def get_king_side_castle_moves(self, row: int, col: int, moves: list[Move.Move], ally_color):
+        if self.board[row][col + 1] == "--" and self.board[row][col + 2] == "--":
+
+            if self.square_under_attack(row, col + 1) or self.square_under_attack(row, col + 2):
+                return
+
+            moves.append((
+                Move.Move((row, col), (row, col + 2),
+                          self.board, is_castle_move=True)
+            ))
+
+    def get_queen_side_castle_moves(self, row: int, col: int, moves: list[Move.Move], ally_color):
+        if self.board[row][col - 1] == "--" and self.board[row][col - 2] == "--" and self.board[row][col + 3]:
+
+            if self.square_under_attack(row, col - 1) or self.square_under_attack(row, col - 2):
+                return
+
+            moves.append((
+                Move.Move((row, col), (row, col - 2),
+                          self.board, is_castle_move=True)
+            ))
 
     def block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> None:
         """
