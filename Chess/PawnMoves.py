@@ -38,7 +38,6 @@ class Pawn():
             if not piece_pinned or pin_direction == (move_amount, 0):
                 if row + move_amount == back_row:
                     pawn_promotion = True
-
                 moves.append(
                     Move.Move((row, col), (row + move_amount, col), self.board, is_pawn_promotion=pawn_promotion))
 
@@ -56,8 +55,6 @@ class Pawn():
                         Move.Move((row, col), (row + move_amount, col - 1), self.board, is_pawn_promotion=pawn_promotion))
 
                 if (row + move_amount, col - 1) == self.en_passant_possible:
-                    print("en passant available")
-
                     moves.append(
                         Move.Move((row, col), (row + move_amount, col - 1), self.board, is_en_passant_move=True))
 
@@ -67,12 +64,9 @@ class Pawn():
                     pawn_promotion = True
 
                 if self.board[row + move_amount][col + 1][0] == enemy_color:
-                    print("en passant available")
                     moves.append(
                         Move.Move((row, col), (row + move_amount, col + 1), self.board, is_pawn_promotion=pawn_promotion))
 
                 if (row + move_amount, col + 1) == self.en_passant_possible:
-                    print("en passant available")
-
                     moves.append(
                         Move.Move((row, col), (row + move_amount,  col + 1), self.board, is_en_passant_move=True))

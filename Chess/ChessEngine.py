@@ -256,6 +256,10 @@ class GameState(ChessHelper.Helper,
         else:
             # not in check - all moves are fine
             moves = self.get_all_possible_moves()
+
+            # we need to get the location again because when we undo the castle move the withe king location is
+            # still in (7, 6) and that is wrong! it is in (7, 4), and that is why we get the location again.
+            king_row, king_col = self.get_king_location()
             self.get_castle_moves(king_row, king_col, moves)
 
         if len(moves) == 0:
