@@ -43,7 +43,7 @@ class Move:
         for key, value in files_to_cols.items()
     }
 
-    def __init__(self, start_square: tuple, end_square: tuple, board: list[str], is_en_passant_move=False, is_pawn_promotion=False) -> None:
+    def __init__(self, start_square: tuple, end_square: tuple, board: list[str], is_en_passant_move=False, is_pawn_promotion=False, is_castle_move=False) -> None:
         self.start_row: int = start_square[0]
         self.start_col: int = start_square[1]
         self.end_row: int = end_square[0]
@@ -58,6 +58,8 @@ class Move:
         if self.is_en_passant_move:
             self.piece_captured = "wp" if self.piece_moved == "bp" else "bp"
 
+        # is castle move
+        self.is_castle_move: bool = is_castle_move
         # Id
         # The \ is not an operation, it is allow me to write the rest of code in a new line
         self.move_id: int = self.start_row * 1000 + self.start_col * \
