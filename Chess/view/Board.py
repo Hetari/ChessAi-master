@@ -1,3 +1,4 @@
+from src.Theme import Theme
 from src.const import *
 import src.ChessEngine as ChessEngine
 import src.Move as Move
@@ -32,19 +33,23 @@ class Board():
             IMAGES[piece] = p.transform.scale(p.image.load(
                 f'{os.getcwd()}/images/{piece}.png'), (SQ_SIZE - 20, SQ_SIZE - 20))
 
-    def draw_game_state(self, screen: p.Surface, game_state: ChessEngine.GameState) -> None:
+    def draw_game_state(self, screen: p.Surface, game_state: ChessEngine.GameState, valid_moves: list[Move.Move], square_selected: tuple[int]) -> None:
         """
         Draw the current game state on the screen. This includes the board and the pieces.
 
         Args:
             screen (p.Surface): The surface object representing the screen to draw on.
             game_state (ChessEngine.GameState): The current game state.
+            valid_moves: A list of valid moves for the selected piece.
+            square_selected: The coordinates of the selected square.
 
         Returns:
             None
         """
         self.draw_board(screen)
         self.draw_board_notations(screen)
+        self.highlight_squares(
+            screen, game_state, valid_moves, square_selected)
         self.draw_pieces(screen, game_state.board)
 
     @staticmethod
@@ -168,6 +173,56 @@ class Board():
                     screen.blit(IMAGES[piece], p.Rect(
                         col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
                     ))
+
+    def highlight_squares(self, screen: p.Surface, game_state: ChessEngine.GameState, valid_moves: list[Move.Move], square_selected: tuple[int]) -> None:
+        """
+        Highlights the squares on the screen based on the selected square and valid moves.
+
+        Args:
+            screen: The Pygame surface to draw on.
+            game_state: The current state of the chess game.
+            valid_moves: A list of valid moves for the selected piece.
+            square_selected: The coordinates of the selected square.
+
+        Returns:
+            None
+        """
+        if not square_selected:
+            return
+
+        row, col = square_selected
+
+        if game_state.board[row][col][0] == ("w" if game_state.white_to_move else "b"):
+            self.highlight_hints_squares(screen, row, col, valid_moves)
+
+    def highlight_hints_squares(self, screen: p.Surface, row: int, col: int, valid_moves: list[Move.Move]) -> None:
+        """
+        Highlights the selected square and valid move squares on the screen.
+
+        Args:
+            screen: The Pygame surface to draw on.
+            row: The row index of the selected square.
+            col: The column index of the selected square.
+            valid_moves: A list of valid moves for the selected piece.
+
+        Returns:
+            None
+        """
+        color: Theme = config.theme.moves.light
+        # highlight selected square
+        s = p.Surface((SQ_SIZE, SQ_SIZE))
+        # Transparency, 0 to 255
+        s.set_alpha(150)
+        s.fill(p.Color(color))
+        screen.blit(s, (col * SQ_SIZE, row * SQ_SIZE))
+
+        # highlight moves from that square
+        s.fill(p.Color(color))
+        s.set_alpha(100)
+        for move in valid_moves:
+            if move.start_row == row and move.start_col == col:
+                screen.blit(s, (move.end_col * SQ_SIZE,
+                            move.end_row * SQ_SIZE))
 
     @staticmethod
     def initialize_game():

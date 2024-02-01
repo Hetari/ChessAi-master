@@ -57,7 +57,7 @@ def main():
         if game_state.in_check:
             print(f"in_check: {game_state.in_check}")
 
-        board.draw_game_state(screen, game_state)
+        board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
         p.display.flip()
 
