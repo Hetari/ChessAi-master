@@ -262,3 +262,65 @@ class Board():
         flags["running"] = False
         p.quit()
         sys.exit()
+
+    def show_modal(self, screen: p.Surface, p: p, message: str):
+        # Colors
+        black = (0, 0, 0)
+        white = (255, 255, 255)
+        result = False
+        # Font
+        font = p.font.Font(None, 36)
+
+        modal_width, modal_height = 400, 200
+        modal_x, modal_y = (
+            WIDTH - modal_width) // 2, (HEIGHT - modal_height) // 2
+        modal_surface = p.Surface((modal_width, modal_height))
+        modal_surface.fill(white)
+        p.draw.rect(modal_surface, black,
+                    (0, 0, modal_width, modal_height), 2)
+
+        text = font.render(message, True, black)
+        text_rect = text.get_rect(
+            center=(modal_width // 2, modal_height // 4))
+        modal_surface.blit(text, text_rect)
+
+        # Create "Yes" button
+        yes_button_rect = p.Rect(50, modal_height // 2, 100, 50)
+        p.draw.rect(modal_surface, black, yes_button_rect, 2)
+        yes_text = font.render("Yes", True, black)
+        yes_text_rect = yes_text.get_rect(center=yes_button_rect.center)
+        modal_surface.blit(yes_text, yes_text_rect)
+
+        # Create "No" button
+        no_button_rect = p.Rect(
+            modal_width - 150, modal_height // 2, 100, 50)
+        p.draw.rect(modal_surface, black, no_button_rect, 2)
+        no_text = font.render("No", True, black)
+        no_text_rect = no_text.get_rect(center=no_button_rect.center)
+        modal_surface.blit(no_text, no_text_rect)
+
+        screen.blit(modal_surface, (modal_x, modal_y))
+
+        p.display.flip()
+
+        # Wait for a button click to close the modal
+        waiting_for_click = True
+        while waiting_for_click:
+            for event in p.event.get():
+                if event.type == p.QUIT:
+                    p.quit()
+                    sys.exit()
+                elif event.type == p.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = event.pos
+                    # Adjust coordinates based on the modal position
+                    adjusted_mouse_x = mouse_x - modal_x
+                    adjusted_mouse_y = mouse_y - modal_y
+
+                    if yes_button_rect.collidepoint(adjusted_mouse_x, adjusted_mouse_y):
+                        waiting_for_click = False
+                        result = True
+
+                    elif no_button_rect.collidepoint(adjusted_mouse_x, adjusted_mouse_y):
+                        waiting_for_click = False
+                        result = False
+        return result

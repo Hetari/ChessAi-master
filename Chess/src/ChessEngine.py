@@ -38,7 +38,7 @@ class GameState(ChessHelper.Helper,
         }
 
         self.white_to_move: bool = True
-        self.move_log: list[Move.Move] = []
+        self.moves_log: list[Move.Move] = []
 
         # Tracking the king location
         self.white_king_location: tuple[int] = (7, 4)
@@ -78,7 +78,7 @@ class GameState(ChessHelper.Helper,
         """
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
-        self.move_log.append(move)
+        self.moves_log.append(move)
         self.white_to_move = not self.white_to_move
 
         # Update the king location, if the move.piece_moved is king
@@ -138,10 +138,10 @@ class GameState(ChessHelper.Helper,
         Returns:
             None
         """
-        if len(self.move_log) == 0:
+        if len(self.moves_log) == 0:
             return
 
-        moves = self.move_log.pop()
+        moves = self.moves_log.pop()
         self.board[moves.start_row][moves.start_col] = moves.piece_moved
         self.board[moves.end_row][moves.end_col] = moves.piece_captured
         self.white_to_move = not self.white_to_move

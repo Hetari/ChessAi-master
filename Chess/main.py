@@ -35,6 +35,27 @@ def main():
             # print("valid_moves 2: ", len(valid_moves))
             # clear the console
 
+        if game_state.check_mate:
+            play_again: bool = board.show_modal(
+                screen, p, "Check mate! Play again?")
+
+            if play_again:
+                # restart the game
+                game_state = ChessEngine.GameState()
+                valid_moves = game_state.get_valid_moves()
+                square_selected = ()
+                player_clicks = []
+                flags["move_made"] = False
+
+            else:
+                board.handle_quit(flags)
+
+        if game_state.stale_mate:
+            print(f"stale_mate: {game_state.stale_mate}")
+
+        if game_state.in_check:
+            print(f"in_check: {game_state.in_check}")
+
         board.draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
         p.display.flip()
