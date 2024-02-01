@@ -187,7 +187,20 @@ class Board():
         Returns:
             None
         """
-        if not square_selected:
+        if len(game_state.moves_log) > 0:
+            last_move = game_state.moves_log[-1]
+            s = p.Surface((SQ_SIZE, SQ_SIZE))
+            # Transparency, 0 to 255
+            s.set_alpha(50)
+            s.fill(p.Color(p.Color("green")))
+            screen.blit(s, (last_move.end_col * SQ_SIZE,
+                        last_move.end_row * SQ_SIZE))
+            s.set_alpha(100)
+            s.fill(p.Color(p.Color("green")))
+            screen.blit(s, (last_move.start_col * SQ_SIZE,
+                        last_move.start_row * SQ_SIZE))
+
+        if square_selected == ():
             return
 
         row, col = square_selected
@@ -291,7 +304,6 @@ class Board():
             list: Updated player_clicks.
         """
         if event.type == p.MOUSEBUTTONDOWN:
-
             row, col = self.get_square_and_clicks(p.mouse.get_pos())
 
             # If the same square is clicked twice, reset the selected square and clear player clicks
@@ -426,65 +438,43 @@ class Board():
             p.Color(config.theme.bg.light),
             p.Color(config.theme.bg.dark)
         ]
-        d_row = move.end_row - move.start_row
-        d_col = move.end_col - move.start_col
-        frames_per_square = 10  # frames to move one square
-        frame_count = (abs(d_row) + abs(d_col)) * frames_per_square
+        # Calculate the row and column difference
+        direction_row: int = move.end_row - move.start_row
+        direction_col: int = move.end_col - move.start_col
+
+        # Calculate the frame count for smooth animation
+        frames_per_square: int = 10
+        frame_count: int = (abs(direction_row) +
+                            abs(direction_col)) * frames_per_square
+
+        # Calculate coordinates for each frame of animation
         for frame in range(frame_count + 1):
-            row, col = (move.start_row + d_row * frame / frame_count,
-                        move.start_col + d_col * frame / frame_count)
+            row, col = (move.start_row + direction_row * frame / frame_count,
+                        move.start_col + direction_col * frame / frame_count)
+
             self.draw_board(screen)
             self.draw_pieces(screen, board)
-            # erease the piece moved from its ending square
-            color = colors[(move.end_row + move.end_col) % 2]
-            end_square = p.Rect(
-                move.end_col*SQ_SIZE, move.end_row*SQ_SIZE, SQ_SIZE, SQ_SIZE)
+
+            # erase the piece moved from it's ending square
+            color: p.Color = colors[((move.end_row + move.end_col) % 2)]
+            end_square: p.Rect = p.Rect(
+                move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+            )
             p.draw.rect(screen, color, end_square)
+
             # draw captured piece onto rectangle
-            if move.piece_captured != '--':
+            if move.piece_captured != "--":
+                # if move.is_en_passant_move:
+                #     en_passant_row = move.end_row + \
+                #         direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
+                #     end_square = p.Rect(
+                #         move.end_col * SQ_SIZE, en_passant_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+                #     )
                 screen.blit(IMAGES[move.piece_captured], end_square)
+
             # draw moving piece
             screen.blit(IMAGES[move.piece_moved], p.Rect(
-                col*SQ_SIZE, row*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+                col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
+            ))
             p.display.flip()
             clock.tick(60)
-        # # Calculate the row and column difference
-        # direction_row: int = move.end_row - move.start_row
-        # direction_col: int = move.end_col - move.start_col
-
-        # # Calculate the frame count for smooth animation
-        # frames_per_square: int = 10
-        # frame_count: int = (abs(direction_row) +
-        #                     abs(direction_col)) * frames_per_square
-
-        # # Calculate coordinates for each frame of animation
-        # for frame in range(frame_count + 1):
-        #     row, col = (move.start_row + direction_row * frame / frame_count,
-        #                 move.start_col + direction_col * frame / frame_count)
-
-        #     self.draw_board(screen)
-        #     self.draw_pieces(screen, board)
-
-        #     # erase the piece moved from it's ending square
-        #     color: p.Color = colors[((move.end_row + move.end_col) % 2)]
-        #     end_square: p.Rect = p.Rect(
-        #         move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
-        #     )
-        #     p.draw.rect(screen, color, end_square)
-
-        #     # draw captured piece onto rectangle
-        #     if move.piece_captured != "--":
-        #         # if move.is_en_passant_move:
-        #         #     en_passant_row = move.end_row + \
-        #         #         direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
-        #         #     end_square = p.Rect(
-        #         #         move.end_col * SQ_SIZE, en_passant_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
-        #         #     )
-        #         screen.blit(IMAGES[move.piece_captured], end_square)
-
-        #     # draw moving piece
-        #     screen.blit(IMAGES[move.piece_moved], p.Rect(
-        #         col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE
-        #     ))
-        #     p.display.flip()
-        #     clock.tick(60)
