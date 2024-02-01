@@ -94,7 +94,6 @@ class GameState(ChessHelper.Helper,
 
         # if en passant move, must update the board to capture the pawn
         if move.is_en_passant_move:
-            print(f"is_en_passant_move {move.is_en_passant_move}")
             self.board[move.start_row][move.end_col] = "--"
 
         # if pawn promotion, change piece
@@ -246,10 +245,32 @@ class GameState(ChessHelper.Helper,
                 # to block check you must move a piece into one of the squares between the enemy piece and the king
                 check: tuple[int] = self.checks[0]
                 valid_squares = []
-                self.block_check_valid_squares(
-                    check, king_row, king_col)
 
-                self.filter_moves_to_block_check(moves, valid_squares)
+                check_row: int = check[0]
+                check_col: int = check[1]
+                piece_checking: int = self.board[check_row][check_col]
+                valid_squares: list[tuple[int, int]] = []
+
+                # if knight, must capture the knight or move your king, other pieces can be blocked
+                if piece_checking[1] == "N":
+                    valid_squares = [(check_row, check_col)]
+                else:
+                    for i in range(1, 8):
+                        # check[2] and check[3] are the direction of the checking piece.
+                        valid_square = (
+                            king_row + check[2] * i, king_col + check[3] * i)
+                        valid_squares.append(valid_square)
+
+                        # once you get to piece and check
+                        if valid_square[0] == check_row and valid_square[1] == check_col:
+                            break
+
+                for i in range(len(moves)-1, -1, -1):
+                    # move doesn't move king so it must block or capture
+                    if moves[i].piece_moved[1] != "K":
+                        # move doesn't block or capture piece
+                        if not (moves[i].end_row, moves[i].end_col) in valid_squares:
+                            moves.remove(moves[i])
             else:
                 # double check, king has to move
                 self.get_king_moves(king_row, king_col, moves)
@@ -386,59 +407,7 @@ class GameState(ChessHelper.Helper,
         Returns:
         - None
         """
-
-        # self.pawn_moves(row, col, moves)
-        piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
-            row, col)
-
-        if self.white_to_move:
-            move_amount = -1
-            start_row = 6
-            back_row = 0
-            enemy_color = "b"
-        else:
-            move_amount = 1
-            start_row = 1
-            back_row = 7
-            enemy_color = "w"
-
-        pawn_promotion = False
-        if self.board[row + move_amount][col] == "--":  # 1 square pawn advance
-            if not piece_pinned or pin_direction == (move_amount, 0):
-                if row + move_amount == back_row:
-                    pawn_promotion = True
-                moves.append(
-                    Move.Move((row, col), (row + move_amount, col), self.board, is_pawn_promotion=pawn_promotion))
-
-                # 2 square pawn advance
-                if row == start_row and self.board[row + 2 * move_amount][col] == "--":
-                    moves.append(
-                        Move.Move((row, col), (row + 2 * move_amount, col), self.board))
-        if col - 1 >= 0:  # capture to the left
-            if not piece_pinned or pin_direction == (move_amount, -1):
-                if row + move_amount == back_row:
-                    pawn_promotion = True
-
-                if self.board[row + move_amount][col - 1][0] == enemy_color:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount, col - 1), self.board, is_pawn_promotion=pawn_promotion))
-
-                if (row + move_amount, col - 1) == self.en_passant_possible:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount, col - 1), self.board, is_en_passant_move=True))
-
-        if col + 1 <= 7:  # capture to the right
-            if not piece_pinned or pin_direction == (move_amount, +1):
-                if row + move_amount == back_row:
-                    pawn_promotion = True
-
-                if self.board[row + move_amount][col + 1][0] == enemy_color:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount, col + 1), self.board, is_pawn_promotion=pawn_promotion))
-
-                if (row + move_amount, col + 1) == self.en_passant_possible:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount,  col + 1), self.board, is_en_passant_move=True))
+        self.pawn_moves(row, col, moves)
 
     def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -452,49 +421,7 @@ class GameState(ChessHelper.Helper,
         Returns:
             None
         """
-        # self.rock_moves(row, col, moves)
-        piece_pinned, pin_direction = self.check_rock_pin(self.pins, row, col)
-
-        # Define directions for possible rook moves
-        directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
-        enemy_color = "b" if self.white_to_move else "w"
-
-        for direction in directions:
-            for i in range(1, 8):
-                end_row = row + direction[0] * i
-                end_col = col + direction[1] * i
-
-                if not self.is_valid_position(end_row, end_col):
-                    break
-
-                # Check if the rook is not pinned, or if the move is in the direction of the pin, or if the move is in the opposite direction of the pin
-                if not piece_pinned or pin_direction == direction or pin_direction == (-direction[0], -direction[1]):
-                    end_piece = self.board[end_row][end_col]
-
-                    # empty space is valid
-                    if end_piece == "--":
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
-
-                    elif end_piece[0] == enemy_color:  # capture enemy piece
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
-                        break
-                    else:  # friendly piece
-                        break
-
-    def check_rock_pin(self, pins, row, col):
-        piece_pinned = False
-        pin_direction = ()
-        for i in range(len(pins) - 1, -1, -1):
-            if pins[i][0] == row and pins[i][1] == col:
-                # can't remove queen from pin on rook moves, only remove it on bishop moves
-                piece_pinned = True
-                pin_direction = (pins[i][2], pins[i][3])
-                if self.board[row][col][1] != "Q":
-                    pins.remove(pins[i])
-                break
-        return piece_pinned, pin_direction
+        self.rock_moves(row, col, moves)
 
     def get_knight_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -508,23 +435,7 @@ class GameState(ChessHelper.Helper,
         Returns:
             None
         """
-        # self.knight_moves(row, col, moves)
-        piece_pinned, _ = self.check_pawn_bishop_knight_pin(row, col)
-
-        # up/left up/right right/up right/down down/left down/right left/up left/down
-        knight_moves = ((-2, -1), (-2, 1), (-1, 2), (1, 2),
-                        (2, -1), (2, 1), (-1, -2), (1, -2))
-        ally_color = "w" if self.white_to_move else "b"
-        for move in knight_moves:
-            end_row = row + move[0]
-            end_col = col + move[1]
-            if self.is_valid_position(end_row, end_col):
-                if not piece_pinned:
-                    end_piece = self.board[end_row][end_col]
-                    # so it's either enemy piece or empty equare
-                    if end_piece[0] != ally_color:
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
+        self.knight_moves(row, col, moves)
 
     def get_bishop_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -538,40 +449,7 @@ class GameState(ChessHelper.Helper,
         Returns:
             None
         """
-        # self.bishop_moves(row, col, moves)
-        piece_pinned, pin_direction = self.check_pawn_bishop_knight_pin(
-            row, col)
-
-        directions = ((-1, -1), (-1, 1), (1, 1), (1, -1))
-
-        # get the enemy color
-        enemy_color = "b" if self.white_to_move else "w"
-
-        for direction in directions:
-            for i in range(1, 8):
-                end_row = row + direction[0] * i
-                end_col = col + direction[1] * i
-
-                if not self.is_valid_position(end_row, end_col):
-                    break
-
-                if not piece_pinned or pin_direction == direction or pin_direction == (-direction[0], -direction[1]):
-                    end_piece = self.board[end_row][end_col]
-
-                    # empty space is valid
-                    if end_piece == "--":
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
-
-                    # capture enemy piece
-                    elif end_piece[0] == enemy_color:
-                        moves.append(
-                            Move.Move((row, col), (end_row, end_col), self.board))
-                        break
-
-                    # friendly piece
-                    else:
-                        break
+        self.bishop_moves(row, col, moves)
 
     def get_queen_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -587,8 +465,8 @@ class GameState(ChessHelper.Helper,
         """
         # self.bishop_moves(row, col, moves)
         # self.rock_moves(row, col, moves)
-        self.get_bishop_moves(row, col, moves)
-        self.get_rock_moves(row, col, moves)
+        self.bishop_moves(row, col, moves)
+        self.rock_moves(row, col, moves)
 
     def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -597,7 +475,6 @@ class GameState(ChessHelper.Helper,
         row and column of the king, and the list of all available moves. 
         This function does not return anything.
         """
-        # self.king_moves(row, col, moves)
         ally_color: str = "w" if self.white_to_move else "b"
         row_moves: tuple[int] = (-1, -1, -1, 0, 0, 1, 1, 1)
         col_moves: tuple[int] = (-1, 0, 1, -1, 1, -1, 0, 1)
@@ -623,7 +500,6 @@ class GameState(ChessHelper.Helper,
                     # place king back on original location
                     self.update_king_location(
                         f"{ally_color}K", row, col)
-        # self.get_castle_moves(row, col, moves)
 
     def get_castle_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         # if king in check
@@ -657,45 +533,3 @@ class GameState(ChessHelper.Helper,
                 Move.Move((row, col), (row, col - 2),
                           self.board, is_castle_move=True)
             ))
-
-    def block_check_valid_squares(self, check: tuple[int, int], king_row: int, king_col: int) -> None:
-        """
-        Returns a list of valid squares to block a check.
-
-        Args:
-            check (Tuple[int, int]): The location of the checking piece.
-            king_row (int): The row of the king.
-            king_col (int): The column of the king.
-
-        Returns:
-            List[Tuple[int, int]]: A list of valid squares to block a check.
-        """
-        check_row: int = check[0]
-        check_col: int = check[1]
-        piece_checking: int = self.board[check_row][check_col]
-        valid_squares: list[tuple[int, int]] = []
-
-        # if knight, must capture the knight or move your king, other pieces can be blocked
-        if piece_checking[1] == "N":
-            valid_squares = [(check_row, check_col)]
-        else:
-            for i in range(1, 8):
-                # check[2] and check[3] are the direction of the checking piece.
-                valid_square = (
-                    king_row + check[2] * i, king_col + check[3] * i)
-                valid_squares.append(valid_square)
-
-                # once you get to piece and check
-                if valid_square[0] == check_row and valid_square[1] == check_col:
-                    break
-
-        return valid_squares
-
-    def filter_moves_to_block_check(self, moves: list[Move.Move], valid_squares: list[tuple[int, int]]) -> list[Move.Move]:
-        # get rid of any moves that don't block check or move king
-        for i in range(len(moves)-1, -1, -1):
-            # move doesn't move king so it must block or capture
-            if moves[i].piece_moved[1] != "K":
-                # move doesn't block or capture piece
-                if not (moves[i].end_row, moves[i].end_col) in valid_squares:
-                    moves.remove(moves[i])
