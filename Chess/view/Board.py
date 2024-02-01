@@ -226,7 +226,7 @@ class Board():
 
     @staticmethod
     def initialize_game():
-        flags = {'running': True, 'move_made': False}
+        flags = {"running": True, "move_made": False, "animate": False}
         p.init()
         screen = p.display.set_mode((WIDTH, HEIGHT))
         clock = p.time.Clock()
@@ -241,7 +241,7 @@ class Board():
         player_clicks = []
         return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks
 
-    def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]]) -> None:
+    def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]], valid_moves: list[Move.Move]) -> None:
         """
         Handle key events in the game, where q or escape is quit, z is undo, and k is change theme.
         """
@@ -256,7 +256,13 @@ class Board():
                 game_state.undo_move()
                 square_selected, player_clicks = (), []
                 flags["move_made"] = True
-        return square_selected, player_clicks
+                flags["animate"] = False
+            elif event.key == p.K_r:
+                print("r")
+                game_state, valid_moves, square_selected, player_clicks, flags = self.reload_game(
+                    flags)
+
+        return game_state, valid_moves, square_selected, player_clicks, flags
 
     @staticmethod
     def get_square_and_clicks(position: p.mouse) -> tuple[int, int]:
@@ -285,6 +291,7 @@ class Board():
             list: Updated player_clicks.
         """
         if event.type == p.MOUSEBUTTONDOWN:
+
             row, col = self.get_square_and_clicks(p.mouse.get_pos())
 
             # If the same square is clicked twice, reset the selected square and clear player clicks
@@ -306,6 +313,7 @@ class Board():
                         print(move.get_chess_notation())
                         game_state.make_move(valid_moves[i])
                         flags["move_made"] = True
+                        flags["animate"] = True
                         square_selected, player_clicks = (), []
 
                 if not flags["move_made"]:
@@ -318,7 +326,17 @@ class Board():
         p.quit()
         sys.exit()
 
-    def show_modal(self, screen: p.Surface, p: p, message: str):
+    def reload_game(self, flags):
+        game_state = ChessEngine.GameState()
+        valid_moves = game_state.get_valid_moves()
+        square_selected = ()
+        player_clicks = []
+        for flag in flags:
+            if flag != "running":
+                flags[flag] = False
+        return game_state, valid_moves, square_selected, player_clicks, flags
+
+    def show_modal(self, screen: p.Surface, p: p, message: str, game_state: ChessEngine.GameState, flags: dict[str, bool]):
         # Colors
         black = (0, 0, 0)
         white = (255, 255, 255)
@@ -365,6 +383,16 @@ class Board():
                 if event.type == p.QUIT:
                     p.quit()
                     sys.exit()
+
+                elif event.type == p.KEYDOWN:
+                    if event.key == p.K_z:
+                        game_state.undo_move()
+                        square_selected, player_clicks = (), []
+                        flags["move_made"] = True
+                        flags["animate"] = False
+                        result = True
+                        return result, square_selected, player_clicks
+
                 elif event.type == p.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = event.pos
                     # Adjust coordinates based on the modal position
@@ -378,4 +406,85 @@ class Board():
                     elif no_button_rect.collidepoint(adjusted_mouse_x, adjusted_mouse_y):
                         waiting_for_click = False
                         result = False
-        return result
+
+        return result, square_selected, player_clicks
+
+    def animate_move(self, move: Move.Move, screen: p.Surface, board: list[str], clock: p.time.Clock) -> None:
+        """
+        Animate the movement of a piece on the board.
+
+        Args:
+        - move: The move to animate.
+        - board: The current state of the board.
+        - clock: The game clock.
+
+        Returns:
+        None
+        """
+        # Define colors for alternating squares
+        colors: list[p.Color] = [
+            p.Color(config.theme.bg.light),
+            p.Color(config.theme.bg.dark)
+        ]
+        d_row = move.end_row - move.start_row
+        d_col = move.end_col - move.start_col
+        frames_per_square = 10  # frames to move one square
+        frame_count = (abs(d_row) + abs(d_col)) * frames_per_square
+        for frame in range(frame_count + 1):
+            row, col = (move.start_row + d_row * frame / frame_count,
+                        move.start_col + d_col * frame / frame_count)
+            self.draw_board(screen)
+            self.draw_pieces(screen, board)
+            # erease the piece moved from its ending square
+            color = colors[(move.end_row + move.end_col) % 2]
+            end_square = p.Rect(
+                move.end_col*SQ_SIZE, move.end_row*SQ_SIZE, SQ_SIZE, SQ_SIZE)
+            p.draw.rect(screen, color, end_square)
+            # draw captured piece onto rectangle
+            if move.piece_captured != '--':
+                screen.blit(IMAGES[move.piece_captured], end_square)
+            # draw moving piece
+            screen.blit(IMAGES[move.piece_moved], p.Rect(
+                col*SQ_SIZE, row*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+            p.display.flip()
+            clock.tick(60)
+        # # Calculate the row and column difference
+        # direction_row: int = move.end_row - move.start_row
+        # direction_col: int = move.end_col - move.start_col
+
+        # # Calculate the frame count for smooth animation
+        # frames_per_square: int = 10
+        # frame_count: int = (abs(direction_row) +
+        #                     abs(direction_col)) * frames_per_square
+
+        # # Calculate coordinates for each frame of animation
+        # for frame in range(frame_count + 1):
+        #     row, col = (move.start_row + direction_row * frame / frame_count,
+        #                 move.start_col + direction_col * frame / frame_count)
+
+        #     self.draw_board(screen)
+        #     self.draw_pieces(screen, board)
+
+        #     # erase the piece moved from it's ending square
+        #     color: p.Color = colors[((move.end_row + move.end_col) % 2)]
+        #     end_square: p.Rect = p.Rect(
+        #         move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+        #     )
+        #     p.draw.rect(screen, color, end_square)
+
+        #     # draw captured piece onto rectangle
+        #     if move.piece_captured != "--":
+        #         # if move.is_en_passant_move:
+        #         #     en_passant_row = move.end_row + \
+        #         #         direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
+        #         #     end_square = p.Rect(
+        #         #         move.end_col * SQ_SIZE, en_passant_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+        #         #     )
+        #         screen.blit(IMAGES[move.piece_captured], end_square)
+
+        #     # draw moving piece
+        #     screen.blit(IMAGES[move.piece_moved], p.Rect(
+        #         col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE
+        #     ))
+        #     p.display.flip()
+        #     clock.tick(60)

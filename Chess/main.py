@@ -20,8 +20,8 @@ def main():
                 board.handle_quit(flags)
 
             # Key handler
-            square_selected, player_clicks = board.handle_key_events(
-                event, game_state, flags, square_selected, player_clicks)
+            game_state, valid_moves, square_selected, player_clicks, flags = board.handle_key_events(
+                event, game_state, flags, square_selected, player_clicks, valid_moves)
 
             # Mouse handler
             square_selected, player_clicks = board.handle_mouse_events(
@@ -29,33 +29,33 @@ def main():
 
         # If a move was made, update the valid moves
         if flags["move_made"]:
-            # print("valid_moves 1: ", len(valid_moves))
+            if flags["animate"]:
+                board.animate_move(
+                    game_state.moves_log[-1], screen, game_state.board, clock)
+            print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
-            # print("valid_moves 2: ", len(valid_moves))
+            flags["animate"] = False
+            print("valid_moves 2: ", len(valid_moves))
             # clear the console
 
         if game_state.check_mate:
-            play_again: bool = board.show_modal(
-                screen, p, "Check mate! Play again?")
+            play_again, square_selected, player_clicks = board.show_modal(
+                screen, p, "Check mate! Play again? or press `z` to undo move", game_state, flags)
 
             if play_again:
                 # restart the game
-                del game_state, valid_moves, square_selected, player_clicks
-                game_state = ChessEngine.GameState()
-                valid_moves = game_state.get_valid_moves()
-                square_selected = ()
-                player_clicks = []
-                flags["move_made"] = False
+                game_state, valid_moves, square_selected, player_clicks, flags = board.reload_game(
+                    flags)
 
             else:
                 board.handle_quit(flags)
 
-        if game_state.stale_mate:
-            print(f"stale_mate: {game_state.stale_mate}")
+        # if game_state.stale_mate:
+        #     print(f"stale_mate: {game_state.stale_mate}")
 
-        if game_state.in_check:
-            print(f"in_check: {game_state.in_check}")
+        # if game_state.in_check:
+        #     print(f"in_check: {game_state.in_check}")
 
         board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
