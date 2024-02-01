@@ -1,9 +1,9 @@
-import sys
 from src.const import *
 import src.ChessEngine as ChessEngine
-import pygame as p
-import os
 import src.Move as Move
+import sys
+import os
+import pygame as p
 
 
 class Board():

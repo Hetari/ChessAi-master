@@ -41,6 +41,7 @@ def main():
 
             if play_again:
                 # restart the game
+                del game_state, valid_moves, square_selected, player_clicks
                 game_state = ChessEngine.GameState()
                 valid_moves = game_state.get_valid_moves()
                 square_selected = ()
