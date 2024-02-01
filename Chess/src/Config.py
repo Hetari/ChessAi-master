@@ -67,4 +67,4 @@ class Config():
             '#C84646',
         )
 
-        self.themes = [green, brown, blue, gray]
+        self.themes = [blue, green, brown, gray]
