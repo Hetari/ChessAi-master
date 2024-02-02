@@ -19,13 +19,16 @@ class GameState(ChessHelper.Helper,
         # board is 8x8 2d list, each element of list has 2 characters
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            # ["bR", "--", "--", "--", "bK", "--", "--", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+            # ["wR", "--", "--", "--", "wK", "--", "--", "wR"],
+        ]
 
         # Get the possible moves for each piece
         self.move_functions: dict[int, callable] = {

@@ -190,17 +190,29 @@ class Board():
         if len(game_state.moves_log) > 0:
             last_move = game_state.moves_log[-1]
             s = p.Surface((SQ_SIZE, SQ_SIZE))
+
             # Transparency, 0 to 255
-            s.set_alpha(50)
+            s.set_alpha(80)
+
             s.fill(p.Color(p.Color("green")))
             screen.blit(s, (last_move.end_col * SQ_SIZE,
                         last_move.end_row * SQ_SIZE))
-            s.set_alpha(100)
+
             s.fill(p.Color(p.Color("green")))
             screen.blit(s, (last_move.start_col * SQ_SIZE,
                         last_move.start_row * SQ_SIZE))
 
-        if square_selected == ():
+        if game_state.in_check:
+            king_row, king_col = game_state.get_king_location()
+            # color: Theme = config.theme.moves.light
+            s = p.Surface((SQ_SIZE, SQ_SIZE))
+            # Transparency, 0 to 255
+            s.set_alpha(100)
+            s.fill(p.Color("red"))
+            screen.blit(s, (king_col * SQ_SIZE,
+                        king_row * SQ_SIZE))
+
+        if not square_selected:
             return
 
         row, col = square_selected
@@ -231,7 +243,7 @@ class Board():
 
         # highlight moves from that square
         s.fill(p.Color(color))
-        s.set_alpha(100)
+        # s.set_alpha(100)
         for move in valid_moves:
             if move.start_row == row and move.start_col == col:
                 screen.blit(s, (move.end_col * SQ_SIZE,
@@ -457,6 +469,8 @@ class Board():
 
             # erase the piece moved from it's ending square
             color: p.Color = colors[((move.end_row + move.end_col) % 2)]
+
+            # Draw the square
             end_square: p.Rect = p.Rect(
                 move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
             )
@@ -464,14 +478,23 @@ class Board():
 
             # draw captured piece onto rectangle
             if move.piece_captured != "--":
-                # if move.is_en_passant_move:
-                #     en_passant_row = move.end_row + \
-                #         direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
-                #     end_square = p.Rect(
-                #         move.end_col * SQ_SIZE, en_passant_row * SQ_SIZE, SQ_SIZE, SQ_SIZE
-                #     )
+                # Draw the piece
+                end_square = p.Rect(
+                    move.end_col * SQ_SIZE + 10, move.end_row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
+                )
+
+                if move.is_en_passant_move:
+                    en_passant_row = move.end_row + \
+                        direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
+                    end_square = p.Rect(
+                        move.end_col * SQ_SIZE + 10, en_passant_row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
+                    )
+
                 screen.blit(IMAGES[move.piece_captured], end_square)
 
+            # TODO: is_castle_move animation
+
+            self.draw_board_notations(screen)
             # draw moving piece
             screen.blit(IMAGES[move.piece_moved], p.Rect(
                 col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
