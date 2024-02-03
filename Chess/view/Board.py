@@ -291,9 +291,13 @@ class Board():
                 flags["animate"] = False
                 flags["game_over"] = False
             elif event.key == p.K_r:
-                print("r")
                 game_state, valid_moves, square_selected, player_clicks, flags = self.reload_game(
                     flags)
+
+                flags["move_made"] = False
+                flags["animate"] = False
+                flags["game_over"] = False
+                flags["is_human_turn"] = True
 
         return game_state, valid_moves, square_selected, player_clicks, flags
 
