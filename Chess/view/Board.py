@@ -368,7 +368,7 @@ class Board():
         # Font
         font = p.font.Font(None, 36)
 
-        modal_width, modal_height = 400, 200
+        modal_width, modal_height = 450, 200
         modal_x, modal_y = (
             WIDTH - modal_width) // 2, (HEIGHT - modal_height) // 2
         modal_surface = p.Surface((modal_width, modal_height))
@@ -399,6 +399,7 @@ class Board():
         screen.blit(modal_surface, (modal_x, modal_y))
 
         p.display.flip()
+        square_selected, player_clicks = (), []
 
         # Wait for a button click to close the modal
         waiting_for_click = True
@@ -411,7 +412,6 @@ class Board():
                 elif event.type == p.KEYDOWN:
                     if event.key == p.K_z:
                         game_state.undo_move()
-                        square_selected, player_clicks = (), []
                         flags["move_made"] = True
                         flags["animate"] = False
                         result = True
@@ -426,10 +426,12 @@ class Board():
                     if yes_button_rect.collidepoint(adjusted_mouse_x, adjusted_mouse_y):
                         waiting_for_click = False
                         result = True
+                        return result, square_selected, player_clicks
 
                     elif no_button_rect.collidepoint(adjusted_mouse_x, adjusted_mouse_y):
                         waiting_for_click = False
                         result = False
+                        return result, square_selected, player_clicks
 
         return result, square_selected, player_clicks
 
