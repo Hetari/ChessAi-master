@@ -14,18 +14,24 @@ def main():
     # load the images on the board
     board.load_images()
 
+    is_player_one_ai: bool = True
+    is_player_tow_ai: bool = False
+
     while flags["running"]:
+        flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_ai) or (
+            not game_state.white_to_move and is_player_tow_ai)
+
         for event in p.event.get():
             if event.type == p.QUIT:
                 board.handle_quit(flags)
 
-            # Key handler
-            game_state, valid_moves, square_selected, player_clicks, flags = board.handle_key_events(
-                event, game_state, flags, square_selected, player_clicks, valid_moves)
-
             # Mouse handler
             square_selected, player_clicks = board.handle_mouse_events(
                 event, square_selected, player_clicks, game_state, valid_moves, flags)
+
+            # Key handler
+            game_state, valid_moves, square_selected, player_clicks, flags = board.handle_key_events(
+                event, game_state, flags, square_selected, player_clicks, valid_moves)
 
         # If a move was made, update the valid moves
         if flags["move_made"]:
@@ -40,8 +46,9 @@ def main():
             # clear the console
 
         if game_state.check_mate:
+            flags["animate"] = True
             play_again, square_selected, player_clicks = board.show_modal(
-                screen, p, "Check mate! Play again? or press `z` to undo move", game_state, flags)
+                screen, p, "Check mate! press `z` to undo move", game_state, flags)
 
             if play_again:
                 # restart the game

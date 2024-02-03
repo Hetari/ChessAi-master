@@ -251,7 +251,8 @@ class Board():
 
     @staticmethod
     def initialize_game():
-        flags = {"running": True, "move_made": False, "animate": False}
+        flags = {"running": True, "move_made": False,
+                 "animate": False, "game_over": False}
         p.init()
         screen = p.display.set_mode((WIDTH, HEIGHT))
         clock = p.time.Clock()
@@ -282,6 +283,7 @@ class Board():
                 square_selected, player_clicks = (), []
                 flags["move_made"] = True
                 flags["animate"] = False
+                flags["game_over"] = False
             elif event.key == p.K_r:
                 print("r")
                 game_state, valid_moves, square_selected, player_clicks, flags = self.reload_game(
@@ -315,38 +317,40 @@ class Board():
             tuple: Updated square_selected.
             list: Updated player_clicks.
         """
-        if event.type == p.MOUSEBUTTONDOWN:
-            row, col = self.get_square_and_clicks(p.mouse.get_pos())
+        if not flags["game_over"] and flags["is_human_turn"]:
+            if event.type == p.MOUSEBUTTONDOWN:
+                row, col = self.get_square_and_clicks(p.mouse.get_pos())
 
-            # If the same square is clicked twice, reset the selected square and clear player clicks
-            if square_selected == (row, col):
-                square_selected, player_clicks = (), []
-            else:
-                # If a different square is clicked, update the selected square and append it to player clicks
-                square_selected = (row, col)
-                player_clicks.append(square_selected)
+                # If the same square is clicked twice, reset the selected square and clear player clicks
+                if square_selected == (row, col):
+                    square_selected, player_clicks = (), []
+                else:
+                    # If a different square is clicked, update the selected square and append it to player clicks
+                    square_selected = (row, col)
+                    player_clicks.append(square_selected)
 
-            # If the player has made two clicks
-            if len(player_clicks) == 2:
-                # Create a Move object using the player clicks and check if it's a valid move
-                move = Move.Move(player_clicks[0],
-                                 player_clicks[1], game_state.board)
-                for i in range(len(valid_moves)):
-                    if move == valid_moves[i]:
-                        # If it's a valid move, make the move in the game state and set the move flag
-                        print(move.get_chess_notation())
-                        game_state.make_move(valid_moves[i])
-                        flags["move_made"] = True
-                        flags["animate"] = True
-                        square_selected, player_clicks = (), []
+                # If the player has made two clicks
+                if len(player_clicks) == 2:
+                    # Create a Move object using the player clicks and check if it's a valid move
+                    move = Move.Move(player_clicks[0],
+                                     player_clicks[1], game_state.board)
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            # If it's a valid move, make the move in the game state and set the move flag
+                            print(move.get_chess_notation())
+                            game_state.make_move(valid_moves[i])
+                            flags["move_made"] = True
+                            flags["animate"] = True
+                            square_selected, player_clicks = (), []
 
-                if not flags["move_made"]:
-                    player_clicks = [square_selected]
+                    if not flags["move_made"]:
+                        player_clicks = [square_selected]
         # if there is not a mouse click event we will return square_selected and player_clicks that passed in the function
         return square_selected, player_clicks
 
     def handle_quit(self, flags):
         flags["running"] = False
+        flags["game_over"] = False
         p.quit()
         sys.exit()
 
