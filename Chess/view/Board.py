@@ -1,6 +1,7 @@
 from src.Theme import Theme
 from src.const import *
 import src.ChessEngine as ChessEngine
+import src.ChessAI as ChessAI
 import src.Move as Move
 import sys
 import os
@@ -265,7 +266,9 @@ class Board():
 
         # keep track of player clicks (two tuples: [(6, 4), (4, 4)])
         player_clicks = []
-        return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks
+
+        ai = ChessAI.ChessAI()
+        return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks, ai
 
     def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]], valid_moves: list[Move.Move]) -> None:
         """
@@ -279,6 +282,9 @@ class Board():
                 self.handle_quit(flags)
 
             elif event.key == p.K_z:
+                if flags.get("is_human_turn", False):
+                    game_state.undo_move()
+
                 game_state.undo_move()
                 square_selected, player_clicks = (), []
                 flags["move_made"] = True
@@ -461,7 +467,7 @@ class Board():
         direction_col: int = move.end_col - move.start_col
 
         # Calculate the frame count for smooth animation
-        frames_per_square: int = 10
+        frames_per_square: int = 8
         frame_count: int = (abs(direction_row) +
                             abs(direction_col)) * frames_per_square
 

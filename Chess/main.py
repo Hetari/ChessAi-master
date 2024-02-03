@@ -9,7 +9,7 @@ def main():
     board = Board.Board()
 
     # initialize the game and global variables
-    flags, screen, clock, game_state, valid_moves, square_selected, player_clicks = board.initialize_game()
+    flags, screen, clock, game_state, valid_moves, square_selected, player_clicks, smart_finder = board.initialize_game()
 
     # load the images on the board
     board.load_images()
@@ -32,6 +32,13 @@ def main():
             # Key handler
             game_state, valid_moves, square_selected, player_clicks, flags = board.handle_key_events(
                 event, game_state, flags, square_selected, player_clicks, valid_moves)
+
+        # Ai move finder logic
+        if not flags["game_over"] and not flags["is_human_turn"]:
+            ai_move = smart_finder.find_random_move(valid_moves)
+            game_state.make_move(ai_move)
+            flags["move_made"] = True
+            flags["animate"] = True
 
         # If a move was made, update the valid moves
         if flags["move_made"]:
