@@ -427,6 +427,7 @@ class Board():
                     if event.key == p.K_z:
                         game_state.undo_move()
                         flags["move_made"] = True
+                        flags["game_over"] = False
                         flags["animate"] = False
                         result = True
                         return result, square_selected, player_clicks

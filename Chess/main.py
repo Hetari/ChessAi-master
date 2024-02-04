@@ -14,7 +14,7 @@ def main():
     # load the images on the board
     board.load_images()
 
-    is_player_one_ai: bool = True
+    is_player_one_ai: bool = False
     is_player_tow_ai: bool = False
 
     while flags["running"]:
@@ -35,7 +35,8 @@ def main():
 
         # Ai move finder logic
         if not flags["game_over"] and not flags["is_human_turn"]:
-            ai_move = smart_finder.find_best_move(game_state, valid_moves)
+            ai_move = smart_finder.find_best_move_min_max(
+                game_state, valid_moves)
 
             if ai_move is None:
                 ai_move = smart_finder.find_random_move(valid_moves)
@@ -76,9 +77,6 @@ def main():
         board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
         p.display.flip()
-
-        import time
-        time.sleep(0.5)
 
 
 if __name__ == "__main__":

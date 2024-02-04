@@ -21,5 +21,6 @@ ROWS = COLS = 8  # dimension is 8*8
 SQ_SIZE = ceil(HEIGHT / COLS)
 MAX_FPS = 15  # for animation
 IMAGES = {}
+DEPTH = 2
 
 config = Config()
