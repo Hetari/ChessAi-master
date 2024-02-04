@@ -512,8 +512,9 @@ class Board():
 
             self.draw_board_notations(screen)
             # draw moving piece
-            screen.blit(IMAGES[move.piece_moved], p.Rect(
-                col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
-            ))
+            if move.piece_moved != "--":
+                screen.blit(IMAGES[move.piece_moved], p.Rect(
+                    col * SQ_SIZE + 10, row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
+                ))
             p.display.flip()
             clock.tick(60)
