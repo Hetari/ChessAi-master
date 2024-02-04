@@ -39,6 +39,7 @@ def main():
                 game_state, valid_moves)
 
             if ai_move is None:
+                print("no move found")
                 ai_move = smart_finder.find_random_move(valid_moves)
 
             game_state.make_move(ai_move)
@@ -50,11 +51,11 @@ def main():
             if flags["animate"]:
                 board.animate_move(
                     game_state.moves_log[-1], screen, game_state.board, clock)
-            print("valid_moves 1: ", len(valid_moves))
+            # print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
             flags["animate"] = False
-            print("valid_moves 2: ", len(valid_moves))
+            # print("valid_moves 2: ", len(valid_moves))
 
         if game_state.check_mate:
             play_again, square_selected, player_clicks = board.show_modal(

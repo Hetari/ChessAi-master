@@ -42,39 +42,30 @@ class ChessAI:
         # Iterate through valid moves
         for player_move in valid_moves:
             game_state.make_move(player_move)
-            opponents_moves = game_state.get_valid_moves()
-
-            # Evaluate opponent's moves
-            if game_state.check_mate:
-                opponents_max_score: int = self.CHECKMATE
-            elif game_state.stale_mate:
-                opponents_max_score = self.STALEMATE
+            if game_state.stale_mate:
+                opponent_max_score = self.STALEMATE
+            elif game_state.check_mate:
+                opponent_max_score = -self.CHECKMATE
             else:
-                opponents_max_score = -self.CHECKMATE
-                for opponents_move in opponents_moves:
-                    game_state.make_move(opponents_move)
+                opponent_moves = game_state.get_valid_moves()
+                opponent_max_score = -self.CHECKMATE
+                for opponent_move in opponent_moves:
+                    game_state.make_move(opponent_move)
                     game_state.get_valid_moves()
-
-                    # Check for checkmate or stalemate
-                    if game_state.check_mate:
-                        score: int = self.CHECKMATE
-                    elif game_state.stale_mate:
-                        score: int = self.STALEMATE
+                    if game_state.checkmate:
+                        score = self.CHECKMATE
+                    elif game_state.stalemate:
+                        score = self.STALEMATE
                     else:
-                        score: int = -turn_multiplier * \
+                        score = -turn_multiplier * \
                             self.score_material(game_state.board)
-
-                    # Update opponent's max score
-                    if score > opponents_max_score:
-                        opponents_max_score = score
+                    if score > opponent_max_score:
+                        opponent_max_score = score
                     game_state.undo_move()
-
-            # Update best move based on opponent's max score
-            if opponents_max_score < opponent_min_max_score:
-                opponent_min_max_score = opponents_max_score
-                best_passed_move = player_move
+            if opponent_max_score < opponent_min_max_score:
+                opponent_min_max_score = opponent_max_score
+                best_player_move = player_move
             game_state.undo_move()
-
         return best_passed_move
 
     def score_material(self, board: list[str]) -> int:
@@ -122,12 +113,13 @@ class ChessAI:
 
     def find_best_move_min_max(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move]):
         global next_move
-
-        self.find_move_min_max(game_state, valid_moves,
-                               self.DEPTH, game_state.white_to_move)
+        # next_move = None
+        self.find_move_min_max(game_state, tuple(valid_moves),
+                               DEPTH, game_state.white_to_move)
 
         return next_move
 
+    @cache
     def find_move_min_max(self, game_state: ChessEngine.GameState,
                           valid_moves: list[Move.Move], depth: int, is_white_move: bool):
         """
@@ -157,7 +149,7 @@ class ChessAI:
 
                 # recursive call for the opponent's move
                 score = self.find_move_min_max(
-                    game_state, next_moves, depth - 1, False)
+                    game_state, tuple(next_moves), depth - 1, False)
                 if score > max_score:
                     max_score = score
 
@@ -175,7 +167,7 @@ class ChessAI:
                 game_state.make_move(move)
                 next_moves = game_state.get_valid_moves()
                 score = self.find_move_min_max(
-                    game_state, next_moves, depth - 1, True)
+                    game_state, tuple(next_moves), depth - 1, True)
                 if score < min_score:
                     min_score = score
                     if depth == DEPTH:

@@ -100,9 +100,9 @@ class GameState(ChessHelper.Helper,
         # if pawn promotion, change piece
         if move.is_pawn_promotion:
             # TODO ask for a piece in UI (Q, R, B, or N)
-            promoted_piece: str = input("Promote to Q, R, B, or N:").upper()
-            self.board[move.end_row][move.end_col] = move.piece_moved[0] + \
-                promoted_piece
+            # promoted_piece: str = input("Promote to Q, R, B, or N:").upper()
+            # promoted_piece
+            self.board[move.end_row][move.end_col] = move.piece_moved[0] + "Q"
 
         # Castle moves
         if move.is_castle_move:

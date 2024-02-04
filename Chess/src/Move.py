@@ -88,3 +88,7 @@ class Move:
 
     def __eq__(self, other: object) -> bool:
         return self.move_id == other.move_id if isinstance(other, Move) else False
+
+    def __hash__(self):
+        # Implement a hash based on the attributes
+        return hash((self.move_id))
