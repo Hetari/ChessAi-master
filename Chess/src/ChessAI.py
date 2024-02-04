@@ -114,12 +114,12 @@ class ChessAI:
     def find_best_move_min_max(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move]):
         global next_move
         # next_move = None
-        self.find_move_min_max(game_state, tuple(valid_moves),
+        self.find_move_min_max(game_state, valid_moves,
                                DEPTH, game_state.white_to_move)
 
         return next_move
 
-    @cache
+    # @cache
     def find_move_min_max(self, game_state: ChessEngine.GameState,
                           valid_moves: list[Move.Move], depth: int, is_white_move: bool):
         """
@@ -149,7 +149,7 @@ class ChessAI:
 
                 # recursive call for the opponent's move
                 score = self.find_move_min_max(
-                    game_state, tuple(next_moves), depth - 1, False)
+                    game_state, next_moves, depth - 1, False)
                 if score > max_score:
                     max_score = score
 
@@ -167,7 +167,7 @@ class ChessAI:
                 game_state.make_move(move)
                 next_moves = game_state.get_valid_moves()
                 score = self.find_move_min_max(
-                    game_state, tuple(next_moves), depth - 1, True)
+                    game_state, next_moves, depth - 1, True)
                 if score < min_score:
                     min_score = score
                     if depth == DEPTH:
