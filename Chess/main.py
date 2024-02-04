@@ -35,7 +35,11 @@ def main():
 
         # Ai move finder logic
         if not flags["game_over"] and not flags["is_human_turn"]:
-            ai_move = smart_finder.find_random_move(valid_moves)
+            ai_move = smart_finder.find_best_move(game_state, valid_moves)
+
+            if ai_move is None:
+                ai_move = smart_finder.find_random_move(valid_moves)
+
             game_state.make_move(ai_move)
             flags["move_made"] = True
             flags["animate"] = True
@@ -50,10 +54,8 @@ def main():
             flags["move_made"] = False
             flags["animate"] = False
             print("valid_moves 2: ", len(valid_moves))
-            # clear the console
 
         if game_state.check_mate:
-            flags["animate"] = True
             play_again, square_selected, player_clicks = board.show_modal(
                 screen, p, "Check mate! press `z` to undo move", game_state, flags)
 
@@ -74,6 +76,9 @@ def main():
         board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
         p.display.flip()
+
+        import time
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
