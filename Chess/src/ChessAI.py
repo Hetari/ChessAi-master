@@ -31,7 +31,7 @@ class ChessAI:
         """
         return random.choice(valid_moves)
 
-    def find_best_move(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move]):
+    def find_best_move(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move]) -> Move.Move:
         """
         Finds the best move to play given the current game state and a list of valid moves.
 
@@ -49,12 +49,14 @@ class ChessAI:
         random.shuffle(valid_moves)
 
         # Find the best move using the negamax algorithm
-        self.find_move_nega_max(game_state, valid_moves,
-                                self.DEPTH, 1 if game_state.white_to_move else -1)
+        self.find_move_nega_max_alpha_beta(
+            game_state, valid_moves,
+            self.DEPTH, -self.CHECKMATE, self.CHECKMATE, 1 if game_state.white_to_move else -1
+        )
 
         return next_move
 
-    def find_best_move_greedy(self, game_state: ChessEngine.GameState, valid_moves):
+    def find_best_move_greedy(self, game_state: ChessEngine.GameState, valid_moves) -> Move.Move:
         """
         Finds the best move to play using a greedy strategy given the current game state and a list of valid moves.
 
@@ -110,7 +112,7 @@ class ChessAI:
         # Return the best move to play
         return best_player_move
 
-    def find_best_move_min_max(self, game_state, valid_moves):
+    def find_best_move_min_max(self, game_state, valid_moves) -> Move.Move:
         """
         Finds the best move to play using the Min-Max algorithm given the current game state and a list of valid moves.
 
@@ -131,7 +133,7 @@ class ChessAI:
         return next_move
 
     def find_move_min_max(self, game_state: ChessEngine.GameState,
-                          valid_moves: list[Move.Move], depth: int, is_white_move: bool):
+                          valid_moves: list[Move.Move], depth: int, is_white_move: bool) -> int:
         """
         Find the best move using the minimax algorithm with alpha-beta pruning.
 
@@ -231,6 +233,32 @@ class ChessAI:
             game_state.undo_move()
 
         # Return the maximum score found
+        return max_score
+
+    def find_move_nega_max_alpha_beta(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move], depth: int, alpha: int, beta: int, turn_multiplier: int) -> int:
+        global next_move
+
+        if depth == 0:
+            return turn_multiplier * self.score_board(game_state)
+
+        # TODO: Move ordering
+        max_score = -self.CHECKMATE
+        for move in valid_moves:
+            game_state.make_move(move)
+            next_moves = game_state.get_valid_moves()
+            score = -self.find_move_nega_max_alpha_beta(
+                game_state, next_moves, depth - 1, -beta, -alpha, -turn_multiplier)
+            if score > max_score:
+                max_score = score
+                if depth == self.DEPTH:
+                    next_move = move
+            game_state.undo_move()
+
+            if max_score > alpha:
+                alpha = max_score
+            if alpha >= beta:
+                break
+
         return max_score
 
     def score_board(self, game_state: ChessEngine.GameState) -> int:
