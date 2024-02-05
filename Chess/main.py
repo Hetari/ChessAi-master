@@ -15,7 +15,7 @@ def main():
     board.load_images()
 
     is_player_one_ai: bool = False
-    is_player_tow_ai: bool = False
+    is_player_tow_ai: bool = True
 
     while flags["running"]:
         flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_ai) or (
@@ -35,11 +35,9 @@ def main():
 
         # Ai move finder logic
         if not flags["game_over"] and not flags["is_human_turn"]:
-            ai_move = smart_finder.find_best_move_min_max(
+            ai_move = smart_finder.find_best_move(
                 game_state, valid_moves)
-
             if ai_move is None:
-                print("no move found")
                 ai_move = smart_finder.find_random_move(valid_moves)
 
             game_state.make_move(ai_move)
