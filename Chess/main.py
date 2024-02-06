@@ -2,9 +2,14 @@ from src.const import *
 import view.Board as Board
 import pygame as p
 import multiprocessing
+import src.db as db
 
 
 def main():
+    database = db.Database()
+    with database:
+        database.create_tables()
+        database.create_new_game()
 
     board = Board.Board()
 
@@ -25,7 +30,7 @@ def main():
     )
 
     is_player_one_human: bool = True
-    is_player_tow_human: bool = False
+    is_player_tow_human: bool = True
 
     while flags["running"]:
         flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_human) or (
@@ -84,8 +89,19 @@ def main():
             flags["animate"] = False
             flags["move_undone"] = False
             # print("valid_moves 2: ", len(valid_moves))
+            database = db.Database()
+            with database:
+                current_game_id = database.get_game_id()
+                database.insert_into_logs(
+                    current_game_id, "Black" if game_state.white_to_move else "White", game_state.moves_log[-1].get_chess_notation())
 
         if game_state.check_mate:
+            database = db.Database()
+            with database:
+                game_id = database.get_game_id()
+                database.update_winner_into_game(
+                    "Black" if game_state.white_to_move else "White", game_id)
+
             play_again, square_selected, player_clicks = board.show_modal(
                 screen, p, "Check mate! press `z` to undo move", game_state, flags)
 
@@ -97,8 +113,11 @@ def main():
             else:
                 board.handle_quit(flags)
 
-        # if game_state.stale_mate:
-        #     print(f"stale_mate: {game_state.stale_mate}")
+        if game_state.stale_mate:
+            database = db.Database()
+            with database:
+                game_id = database.get_game_id()
+                database.update_winner_into_game("Stalemate", game_id)
 
         # if game_state.in_check:
         #     print(f"in_check: {game_state.in_check}")
