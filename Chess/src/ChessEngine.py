@@ -54,6 +54,7 @@ class GameState(ChessHelper.Helper,
 
         # coordinates for the square where en passant capture is possible
         self.en_passant_possible: tuple = ()
+        self.en_passant_possible_log: list[tuple] = [self.en_passant_possible]
 
         # CastleRights
         self.current_castle_rights: Castle.CastleRights = Castle.CastleRights(
@@ -102,11 +103,9 @@ class GameState(ChessHelper.Helper,
             # TODO ask for a piece in UI (Q, R, B, or N)
             # promoted_piece: str = input("Promote to Q, R, B, or N:").upper()
             # promoted_piece
-            self.board[move.end_row][move.end_col] = move.piece_moved[0] + "Q"
+            self.board[move.end_row][move.end_col] = f"{move.piece_moved[0]}Q"
 
-        # Castle moves
         if move.is_castle_move:
-            # king  side castle
             if move.end_col - move.start_col == 2:
                 self.board[move.end_row][move.end_col -
                                          1] = self.board[move.end_row][move.end_col + 1]
@@ -116,6 +115,8 @@ class GameState(ChessHelper.Helper,
                 self.board[move.end_row][move.end_col +
                                          1] = self.board[move.end_row][move.end_col - 2]
                 self.board[move.end_row][move.end_col - 2] = "--"
+
+        self.en_passant_possible_log.append(self.en_passant_possible)
 
         # Updating the castling rights
         self.update_castle_rights(move)
@@ -155,11 +156,9 @@ class GameState(ChessHelper.Helper,
             # leave landing square blank
             self.board[moves.end_row][moves.end_col] = "--"
             self.board[moves.start_row][moves.end_col] = moves.piece_captured
-            self.en_passant_possible = (moves.end_row, moves.end_col)
 
-        # undo a 2 square pawn advance should make en_passant_possible = () again
-        if moves.piece_moved[1] == "p" and abs(moves.start_row - moves.end_row) == 2:
-            self.en_passant_possible = ()
+        self.en_passant_possible_log.pop()
+        self.en_passant_possible = self.en_passant_possible_log[-1]
 
         # undo castling rights
         self.castle_rights_log.pop()
