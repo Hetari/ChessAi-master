@@ -1,4 +1,5 @@
 # import random
+import multiprocessing
 import random
 import src.Move as Move
 import src.ChessEngine as ChessEngine
@@ -9,7 +10,7 @@ class ChessAI:
     def __init__(self) -> None:
         self.CHECKMATE: int = 1000
         self.STALEMATE: int = 0
-        self.DEPTH: int = 4
+        self.DEPTH: int = 3
         self.piece_score: dict[str, int] = {
             "K": 0,
             "Q": 9,
@@ -161,7 +162,7 @@ class ChessAI:
         """
         return random.choice(valid_moves)
 
-    def find_best_move(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move]) -> Move.Move:
+    def find_best_move(self, game_state: ChessEngine.GameState, valid_moves: list[Move.Move], return_queue: multiprocessing.Queue) -> Move.Move:
         """
         Finds the best move to play given the current game state and a list of valid moves.
 
@@ -184,7 +185,7 @@ class ChessAI:
             self.DEPTH, -self.CHECKMATE, self.CHECKMATE, 1 if game_state.white_to_move else -1
         )
 
-        return next_move
+        return_queue.put(next_move)
 
     def find_best_move_greedy(self, game_state: ChessEngine.GameState, valid_moves) -> Move.Move:
         """

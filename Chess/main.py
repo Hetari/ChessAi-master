@@ -1,11 +1,11 @@
 from src.const import *
-import src.ChessEngine as ChessEngine
-import src.Move as Move
 import view.Board as Board
 import pygame as p
+import multiprocessing
 
 
 def main():
+
     board = Board.Board()
 
     # initialize the game and global variables
@@ -13,6 +13,16 @@ def main():
 
     # load the images on the board
     board.load_images()
+
+    return_queue = multiprocessing.Queue()
+    move_finder_process = multiprocessing.Process(
+        target=smart_finder.find_best_move,
+        args=(
+            game_state,
+            valid_moves,
+            return_queue,
+        )
+    )
 
     is_player_one_human: bool = True
     is_player_tow_human: bool = False
@@ -31,18 +41,37 @@ def main():
 
             # Key handler
             game_state, valid_moves, square_selected, player_clicks, flags = board.handle_key_events(
-                event, game_state, flags, square_selected, player_clicks, valid_moves)
+                event, game_state, flags, square_selected, player_clicks, valid_moves, move_finder_process)
 
         # Ai move finder logic
-        if not flags["game_over"] and not flags["is_human_turn"]:
-            ai_move = smart_finder.find_best_move(
-                game_state, valid_moves)
-            if ai_move is None:
-                ai_move = smart_finder.find_random_move(valid_moves)
+        if not flags["game_over"] and not flags["is_human_turn"] and not flags["move_undone"]:
+            if not flags["ai_thinking"]:
+                flags["ai_thinking"] = True
+                print("Thinking...")
 
-            game_state.make_move(ai_move)
-            flags["move_made"] = True
-            flags["animate"] = True
+                # To pass data between processes
+                return_queue = multiprocessing.Queue()
+                move_finder_process = multiprocessing.Process(
+                    target=smart_finder.find_best_move,
+                    args=(
+                        game_state,
+                        valid_moves,
+                        return_queue,
+                    )
+                )
+                # Call the process, the same as smart_finder.find_best_move(game_state, valid_moves)
+                move_finder_process.start()
+
+            if not move_finder_process.is_alive():
+                print("Done thinking...")
+                ai_move = return_queue.get()
+                if ai_move is None:
+                    ai_move = smart_finder.find_random_move(valid_moves)
+
+                game_state.make_move(ai_move)
+                flags["animate"] = True
+                flags["move_made"] = True
+                flags["ai_thinking"] = False
 
         # If a move was made, update the valid moves
         if flags["move_made"]:
@@ -53,6 +82,7 @@ def main():
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
             flags["animate"] = False
+            flags["move_undone"] = False
             # print("valid_moves 2: ", len(valid_moves))
 
         if game_state.check_mate:

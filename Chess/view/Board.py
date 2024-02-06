@@ -1,3 +1,4 @@
+import multiprocessing
 from src.Theme import Theme
 from src.const import *
 import src.ChessEngine as ChessEngine
@@ -252,8 +253,15 @@ class Board():
 
     @staticmethod
     def initialize_game():
-        flags = {"running": True, "move_made": False,
-                 "animate": False, "game_over": False}
+        flags = {
+            "running": True,
+            "move_made": False,
+            "animate": False,
+            "game_over": False,
+            "ai_thinking": False,
+            "move_finder_process": None,
+            "move_undone": False,
+        }
         p.init()
         screen = p.display.set_mode((WIDTH, HEIGHT))
         clock = p.time.Clock()
@@ -270,7 +278,7 @@ class Board():
         ai = ChessAI.ChessAI()
         return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks, ai
 
-    def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]], valid_moves: list[Move.Move]) -> None:
+    def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]], valid_moves: list[Move.Move], thread_process: multiprocessing.Process) -> None:
         """
         Handle key events in the game, where q or escape is quit, z is undo, and k is change theme.
         """
@@ -291,6 +299,12 @@ class Board():
                 flags["move_made"] = True
                 flags["animate"] = False
                 flags["game_over"] = False
+                flags["move_undone"] = True
+
+                if flags["ai_thinking"]:
+                    thread_process.terminate()
+                    flags["ai_thinking"] = False
+
             elif event.key == p.K_r:
                 game_state, valid_moves, square_selected, player_clicks, flags = self.reload_game(
                     flags)
@@ -299,6 +313,11 @@ class Board():
                 flags["animate"] = False
                 flags["game_over"] = False
                 flags["is_human_turn"] = True
+                flags["move_undone"] = True
+
+                if flags["ai_thinking"]:
+                    thread_process.terminate()
+                    flags["ai_thinking"] = False
 
         return game_state, valid_moves, square_selected, player_clicks, flags
 
@@ -328,8 +347,8 @@ class Board():
             tuple: Updated square_selected.
             list: Updated player_clicks.
         """
-        if not flags["game_over"] and flags["is_human_turn"]:
-            if event.type == p.MOUSEBUTTONDOWN:
+        if event.type == p.MOUSEBUTTONDOWN:
+            if not flags["game_over"]:
                 row, col = self.get_square_and_clicks(p.mouse.get_pos())
 
                 # If the same square is clicked twice, reset the selected square and clear player clicks
@@ -341,14 +360,13 @@ class Board():
                     player_clicks.append(square_selected)
 
                 # If the player has made two clicks
-                if len(player_clicks) == 2:
+                if len(player_clicks) == 2 and flags["is_human_turn"]:
                     # Create a Move object using the player clicks and check if it's a valid move
                     move = Move.Move(player_clicks[0],
                                      player_clicks[1], game_state.board)
                     for i in range(len(valid_moves)):
                         if move == valid_moves[i]:
                             # If it's a valid move, make the move in the game state and set the move flag
-                            print(move.get_chess_notation())
                             game_state.make_move(valid_moves[i])
                             flags["move_made"] = True
                             flags["animate"] = True
