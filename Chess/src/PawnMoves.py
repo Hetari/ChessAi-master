@@ -33,6 +33,8 @@ class Pawn():
             back_row = 7
             enemy_color = "w"
 
+        king_row, king_col = self.get_king_location()
+
         pawn_promotion = False
         if self.board[row + move_amount][col] == "--":  # 1 square pawn advance
             if not piece_pinned or pin_direction == (move_amount, 0):
@@ -55,8 +57,28 @@ class Pawn():
                         Move.Move((row, col), (row + move_amount, col - 1), self.board, is_pawn_promotion=pawn_promotion))
 
                 if (row + move_amount, col - 1) == self.en_passant_possible:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount, col - 1), self.board, is_en_passant_move=True))
+                    attacking_piece = blocking_piece = False
+                    if king_row == row:
+                        if king_col < col:
+                            inside_range = range(king_col + 1, col - 1)
+                            outer_range = range(col + 1, 8)
+                        else:
+                            inside_range = range(king_col - 1, col, -1)
+                            outer_range = range(col - 2, -1, -1)
+
+                        for c in inside_range:
+                            if self.board[row][c] != "--":
+                                blocking_piece = True
+                        for c in outer_range:
+                            square = self.board[row][c]
+                            if square[0] == enemy_color and (square[1] in ["R", "Q"]):
+                                attacking_piece = True
+                            elif square != "--":
+                                blocking_piece = True
+
+                    if not attacking_piece or blocking_piece:
+                        moves.append(
+                            Move.Move((row, col), (row + move_amount, col - 1), self.board, is_en_passant_move=True))
 
         if col + 1 <= 7:  # capture to the right
             if not piece_pinned or pin_direction == (move_amount, +1):
@@ -68,5 +90,25 @@ class Pawn():
                         Move.Move((row, col), (row + move_amount, col + 1), self.board, is_pawn_promotion=pawn_promotion))
 
                 if (row + move_amount, col + 1) == self.en_passant_possible:
-                    moves.append(
-                        Move.Move((row, col), (row + move_amount,  col + 1), self.board, is_en_passant_move=True))
+                    attacking_piece = blocking_piece = False
+                    if king_row == row:
+                        if king_col < col:
+                            inside_range = range(king_col + 1, col)
+                            outer_range = range(col + 2, 8)
+                        else:
+                            inside_range = range(king_col - 1, col + 1, -1)
+                            outer_range = range(col - 1, -1, -1)
+
+                        for c in inside_range:
+                            if self.board[row][c] != "--":
+                                blocking_piece = True
+                        for c in outer_range:
+                            square = self.board[row][c]
+                            if square[0] == enemy_color and (square[1] in ["R", "Q"]):
+                                attacking_piece = True
+                            elif square != "--":
+                                blocking_piece = True
+
+                    if not attacking_piece or blocking_piece:
+                        moves.append(
+                            Move.Move((row, col), (row + move_amount,  col + 1), self.board, is_en_passant_move=True))
