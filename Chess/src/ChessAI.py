@@ -9,7 +9,7 @@ class ChessAI:
     def __init__(self) -> None:
         self.CHECKMATE: int = 1000
         self.STALEMATE: int = 0
-        self.DEPTH: int = 3
+        self.DEPTH: int = 4
         self.piece_score: dict[str, int] = {
             "K": 0,
             "Q": 9,
@@ -17,6 +17,136 @@ class ChessAI:
             "B": 3,
             "N": 3,
             "p": 1,
+
+        }
+        self.knight_scores: list[list[int]] = [
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 2, 2, 2, 2, 2, 2, 1],
+            [1, 2, 3, 3, 3, 3, 2, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [1, 2, 3, 3, 3, 3, 2, 1],
+            [1, 2, 2, 2, 2, 2, 2, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1],
+        ]
+
+        self.bishop_scores: list[list[int]] = [
+            [4, 3, 2, 1, 1, 2, 3, 4],
+            [3, 4, 3, 2, 2, 3, 4, 3],
+            [2, 4, 4, 3, 3, 4, 4, 2],
+            [1, 2, 4, 4, 4, 4, 2, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [2, 3, 3, 3, 3, 3, 3, 2],
+            [3, 4, 4, 4, 4, 4, 4, 3],
+            [4, 3, 3, 4, 4, 3, 3, 4],
+        ]
+
+        self.queen_scores: list[list[int]] = [
+            [1, 1, 1, 3, 1, 1, 1, 1],
+            [1, 2, 3, 3, 3, 1, 1, 1],
+            [1, 4, 3, 3, 3, 3, 2, 1],
+            [1, 2, 3, 3, 4, 3, 2, 1],
+            [1, 2, 3, 3, 3, 3, 2, 1],
+            [1, 4, 3, 3, 3, 3, 2, 1],
+            [1, 1, 2, 3, 3, 1, 1, 1],
+            [1, 1, 1, 3, 1, 1, 1, 1],
+        ]
+
+        self.rock_scores: list[list[int]] = [
+            [4, 3, 4, 4, 4, 4, 3, 4],
+            [4, 4, 4, 4, 4, 4, 4, 4],
+            [1, 1, 2, 3, 3, 2, 1, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [1, 1, 2, 2, 2, 2, 1, 1],
+            [4, 4, 4, 4, 4, 4, 4, 4],
+            [4, 3, 4, 4, 4, 4, 3, 4],
+        ]
+
+        self.white_pawn_scores: list[list[int]] = [
+            [8, 8, 8, 8, 8, 8, 8, 8],
+            [8, 8, 8, 8, 8, 8, 8, 8],
+            [5, 6, 6, 7, 7, 6, 6, 5],
+            [2, 3, 3, 5, 5, 3, 3, 2],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [1, 1, 2, 3, 3, 2, 1, 1],
+            [1, 1, 1, 0, 0, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+
+        self.black_pawn_scores: list[list[int]] = [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 1, 1, 1],
+            [1, 1, 2, 3, 3, 2, 1, 1],
+            [1, 2, 3, 4, 4, 3, 2, 1],
+            [2, 3, 3, 5, 5, 3, 3, 2],
+            [5, 6, 6, 7, 7, 6, 6, 5],
+            [8, 8, 8, 8, 8, 8, 8, 8],
+            [8, 8, 8, 8, 8, 8, 8, 8],
+        ]
+
+        # self.knight_scores: list[list[int]] = [
+        #     [0.0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0],
+        #     [0.1, 0.3, 0.5, 0.5, 0.5, 0.5, 0.3, 0.1],
+        #     [0.2, 0.5, 0.6, 0.65, 0.65, 0.6, 0.5, 0.2],
+        #     [0.2, 0.55, 0.65, 0.7, 0.7, 0.65, 0.55, 0.2],
+        #     [0.2, 0.5, 0.65, 0.7, 0.7, 0.65, 0.5, 0.2],
+        #     [0.2, 0.55, 0.6, 0.65, 0.65, 0.6, 0.55, 0.2],
+        #     [0.1, 0.3, 0.5, 0.55, 0.55, 0.5, 0.3, 0.1],
+        #     [0.0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0]
+        # ]
+
+        # self.bishop_scores: list[list[int]] = [
+        #     [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0],
+        #     [0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2],
+        #     [0.2, 0.4, 0.5, 0.6, 0.6, 0.5, 0.4, 0.2],
+        #     [0.2, 0.5, 0.5, 0.6, 0.6, 0.5, 0.5, 0.2],
+        #     [0.2, 0.4, 0.6, 0.6, 0.6, 0.6, 0.4, 0.2],
+        #     [0.2, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.2],
+        #     [0.2, 0.5, 0.4, 0.4, 0.4, 0.4, 0.5, 0.2],
+        #     [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0]
+        # ]
+
+        # self.rook_scores: list[list[int]] = [
+        #     [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
+        #     [0.5, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5],
+        #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
+        #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
+        #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
+        #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
+        #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
+        #     [0.25, 0.25, 0.25, 0.5, 0.5, 0.25, 0.25, 0.25]
+        # ]
+
+        # self.queen_scores: list[list[int]] = [
+        #     [0.0, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.0],
+        #     [0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2],
+        #     [0.2, 0.4, 0.5, 0.5, 0.5, 0.5, 0.4, 0.2],
+        #     [0.3, 0.4, 0.5, 0.5, 0.5, 0.5, 0.4, 0.3],
+        #     [0.4, 0.4, 0.5, 0.5, 0.5, 0.5, 0.4, 0.3],
+        #     [0.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.4, 0.2],
+        #     [0.2, 0.4, 0.5, 0.4, 0.4, 0.4, 0.4, 0.2],
+        #     [0.0, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.0]
+        # ]
+
+        # self.pawn_scores: list[list[int]] = [
+        #     [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+        #     [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7],
+        #     [0.3, 0.3, 0.4, 0.5, 0.5, 0.4, 0.3, 0.3],
+        #     [0.25, 0.25, 0.3, 0.45, 0.45, 0.3, 0.25, 0.25],
+        #     [0.2, 0.2, 0.2, 0.4, 0.4, 0.2, 0.2, 0.2],
+        #     [0.25, 0.15, 0.1, 0.2, 0.2, 0.1, 0.15, 0.25],
+        #     [0.25, 0.3, 0.3, 0.0, 0.0, 0.3, 0.3, 0.25],
+        #     [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        # ]
+
+        self.piece_position_scores: dict[str, callable] = {
+            "N": self.knight_scores,
+            "B": self.bishop_scores,
+            "R": self.rock_scores,
+            "Q": self.queen_scores,
+            "wp": self.white_pawn_scores,
+            "bp": self.black_pawn_scores,
         }
 
     def find_random_move(self, valid_moves: list[Move.Move]) -> Move.Move:
@@ -252,6 +382,8 @@ class ChessAI:
                 max_score = score
                 if depth == self.DEPTH:
                     next_move = move
+                    print(move.get_chess_notation(), max_score)
+
             game_state.undo_move()
 
             if max_score > alpha:
@@ -283,14 +415,25 @@ class ChessAI:
             return self.STALEMATE
 
         score: int = 0
-        for row in game_state.board:
-            for square in row:
-                if square[0] == "w":
-                    # add the piece score to the total score
-                    score += self.piece_score[square[1]]
-                elif square[0] == "b":
-                    # subtract the piece score from the total score
-                    score -= self.piece_score[square[1]]
+        for row in range(len(game_state.board)):
+            for col in range(len(game_state.board[row])):
+                square = game_state.board[row][col]
+                if square != "--":
+                    piece_position_score = 0
+                    if square[1] != "K":
+                        if square[1] == "p":
+                            piece_position_score = self.piece_position_scores[square][row][col]
+                        else:
+                            piece_position_score = self.piece_position_scores[square[1]][row][col]
+
+                    if square[0] == "w":
+                        # add the piece score to the total score
+                        score += self.piece_score[square[1]
+                                                  ] + piece_position_score * 0.1
+                    elif square[0] == "b":
+                        # subtract the piece score from the total score
+                        score -= self.piece_score[square[1]
+                                                  ] + piece_position_score * 0.1
         return score
 
     def score_material(self, board: list[str]) -> int:

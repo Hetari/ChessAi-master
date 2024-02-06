@@ -71,7 +71,7 @@ class Move:
         """
         # for example it will return c7e5
         # return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
-        return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
+        return self.piece_moved + " -> " + self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
 
     def get_rank_file(self, row: int, col: int) -> str:
         """

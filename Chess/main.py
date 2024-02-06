@@ -15,7 +15,7 @@ def main():
     board.load_images()
 
     is_player_one_human: bool = True
-    is_player_tow_human: bool = True
+    is_player_tow_human: bool = False
 
     while flags["running"]:
         flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_human) or (

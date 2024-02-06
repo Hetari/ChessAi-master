@@ -282,8 +282,9 @@ class Board():
                 self.handle_quit(flags)
 
             elif event.key == p.K_z:
-                if flags.get("is_human_turn", False):
-                    game_state.undo_move()
+                # if flags.get("is_human_turn", False):
+                #     print(f"is_human_turn: {flags.get('is_human_turn', False)}")
+                # game_state.undo_m ove()
 
                 game_state.undo_move()
                 square_selected, player_clicks = (), []
@@ -502,7 +503,7 @@ class Board():
 
                 if move.is_en_passant_move:
                     en_passant_row = move.end_row + \
-                        direction_row if move.piece_captured[1] == "w" else move.end_row - direction_row
+                        direction_row if move.piece_captured[0] == "w" else move.end_row - direction_row
                     end_square = p.Rect(
                         move.end_col * SQ_SIZE + 10, en_passant_row * SQ_SIZE + 10, SQ_SIZE, SQ_SIZE
                     )
