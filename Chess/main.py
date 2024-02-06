@@ -14,12 +14,12 @@ def main():
     # load the images on the board
     board.load_images()
 
-    is_player_one_ai: bool = False
-    is_player_tow_ai: bool = True
+    is_player_one_human: bool = True
+    is_player_tow_human: bool = True
 
     while flags["running"]:
-        flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_ai) or (
-            not game_state.white_to_move and is_player_tow_ai)
+        flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_human) or (
+            not game_state.white_to_move and is_player_tow_human)
 
         for event in p.event.get():
             if event.type == p.QUIT:
