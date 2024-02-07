@@ -1,7 +1,7 @@
 import src.Move as Move
 
 
-class rook():
+class Rook():
     def rook_moves(self, row, col, moves):
         piece_pinned, pin_direction = self.check_rook_pin(self.pins, row, col)
 
