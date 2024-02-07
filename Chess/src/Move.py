@@ -71,7 +71,11 @@ class Move:
         """
         # for example it will return c7e5
         # return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
-        return self.piece_moved + " -> " + self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
+        name = self.convert_letters_to_words(self.piece_moved[1])
+        color = "White" if self.piece_moved[0] == "w" else "Black"
+        _from = self.get_rank_file(self.start_row, self.start_col)
+        to = self.get_rank_file(self.end_row, self.end_col)
+        return f"{color} {name} -> {_from} {to}"
 
     def get_rank_file(self, row: int, col: int) -> str:
         """
@@ -85,6 +89,17 @@ class Move:
             Tuple[str, int]: The rank and file of the position.
         """
         return self.cols_to_files[col] + self.row_to_ranks[row]
+
+    def convert_letters_to_words(self, letter):
+        letter_to_word = {
+            "b": "bishop",
+            "k": "king",
+            "q": "queen",
+            "p": "pawn",
+            "n": "knight",
+            "r": "rook",
+            "none": "none"}
+        return letter_to_word[letter.lower()]
 
     def __eq__(self, other: object) -> bool:
         return self.move_id == other.move_id if isinstance(other, Move) else False
@@ -102,6 +117,3 @@ class Move:
             "is_castle_move": self.is_castle_move,
             "move_id": self.move_id
         }
-    # def __hash__(self):
-    #     # Implement a hash based on the attributes
-    #     return hash((self.move_id))
