@@ -54,7 +54,7 @@ def main():
     )
 
     is_player_one_human: bool = True
-    is_player_tow_human: bool = True
+    is_player_tow_human: bool = False
 
     while flags["running"]:
         capture_sound = threading.Thread(
@@ -114,7 +114,7 @@ def main():
                 if ai_move is None:
                     ai_move = smart_finder.find_random_move(valid_moves)
 
-                if ai_move.is_pawn_promotions:
+                if ai_move.is_pawn_promotion:
                     game_state.promotion_choice = random.choice(
                         ["Q", "R", "B", "N"])
 
@@ -128,12 +128,10 @@ def main():
             if flags["animate"]:
                 board.animate_move(
                     game_state.moves_log[-1], screen, game_state.board, clock)
-            # print("valid_moves 1: ", len(valid_moves))
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
             flags["animate"] = False
             flags["move_undo"] = False
-            # print("valid_moves 2: ", len(valid_moves))
 
             if len(game_state.moves_log) != 0 and game_state.moves_log[-1].piece_captured != "--":
                 capture_sound.start()
@@ -149,7 +147,8 @@ def main():
                 default=lambda obj: obj.__json__()
             )
             play_again, square_selected, player_clicks = board.show_modal(
-                screen, p, "Check mate! press `z` to undo move", game_state, flags
+                screen, p, "Black" if game_state.white_to_move else "White" +
+                " wins", game_state, flags
             )
 
             database = db.Database()
@@ -158,8 +157,6 @@ def main():
                     "Black" if game_state.white_to_move else "White", current_game_id
                 )
 
-                print(f"serialized_list: {serialized_list}")
-                print(f"current_game_id: {current_game_id}")
                 database.insert_moves_log(
                     current_game_id,
                     serialized_list
@@ -178,7 +175,9 @@ def main():
             database = db.Database()
             with database:
                 database.update_winner_into_game("Stalemate", current_game_id)
-
+            board.show_modal(
+                screen, p, "Stalemate...", game_state, flags
+            )
         board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
         p.display.flip()

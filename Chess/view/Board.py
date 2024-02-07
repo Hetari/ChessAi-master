@@ -294,9 +294,8 @@ class Board():
                 self.handle_quit(flags)
 
             elif event.key == p.K_z:
-                # if flags.get("is_human_turn", False):
-                #     print(f"is_human_turn: {flags.get('is_human_turn', False)}")
-                # game_state.undo_m ove()
+                if flags.get("is_human_turn", False):
+                    game_state.undo_move()
 
                 game_state.undo_move()
                 square_selected, player_clicks = (), []
@@ -376,7 +375,7 @@ class Board():
                                 piece = self.ask_pawn_promotion(screen)
                                 game_state.promotion_choice = piece
                                 screen = p.display.set_mode((WIDTH, HEIGHT))
-                            
+
                             game_state.make_move(valid_moves[i])
                             flags["move_made"] = True
                             flags["animate"] = True

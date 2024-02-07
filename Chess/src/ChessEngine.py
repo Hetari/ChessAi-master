@@ -1,3 +1,4 @@
+import hashlib
 import src.Castle as Castle
 import src.Move as Move
 import src.PawnMoves as PawnMoves
@@ -19,7 +20,8 @@ class GameState(ChessHelper.Helper,
         # board is 8x8 2d list, each element of list has 2 characters
         self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            # ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -286,11 +288,22 @@ class GameState(ChessHelper.Helper,
             if self.in_check:
                 self.check_mate = True
             else:
-                # TODO stalemate on repeated moves
                 self.stale_mate = True
         else:
             self.check_mate = False
-            self.stale_mate = False
+
+            # Check for stalemate on repeated moves
+            enemy_count = 0
+            enemy_color = "b" if self.white_to_move else "w"
+            # For loop in the board to check the number of pieces
+            for i in range(len(self.board)):
+                for j in range(len(self.board[i])):
+                    # Check if the piece is an enemy
+                    if self.board[i][j][0] == enemy_color:
+                        enemy_count += 1
+            print(f"enemy_count: {enemy_count}")
+            if enemy_count <= 2:
+                self.stale_mate = True
 
         self.current_castle_rights = temp_castle_rights
         return moves

@@ -10,7 +10,7 @@ class ChessAI:
     def __init__(self) -> None:
         self.CHECKMATE: int = 1000
         self.STALEMATE: int = 0
-        self.DEPTH: int = 4
+        self.DEPTH: int = 1
         self.piece_score: dict[str, int] = {
             "K": 0,
             "Q": 9,
@@ -384,7 +384,6 @@ class ChessAI:
                 max_score = score
                 if depth == self.DEPTH:
                     next_move = move
-                    print(move.get_chess_notation(), max_score)
 
             game_state.undo_move()
 
