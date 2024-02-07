@@ -10,7 +10,7 @@ class ChessAI:
     def __init__(self) -> None:
         self.CHECKMATE: int = 1000
         self.STALEMATE: int = 0
-        self.DEPTH: int = 3
+        self.DEPTH: int = 4
         self.piece_score: dict[str, int] = {
             "K": 0,
             "Q": 9,
@@ -37,7 +37,7 @@ class ChessAI:
             [2, 4, 4, 3, 3, 4, 4, 2],
             [1, 2, 4, 4, 4, 4, 2, 1],
             [1, 2, 3, 4, 4, 3, 2, 1],
-            [2, 3, 3, 3, 3, 3, 3, 2],
+            [2, 3, 4, 3, 3, 3, 3, 2],
             [3, 4, 4, 4, 4, 4, 4, 3],
             [4, 3, 3, 4, 4, 3, 3, 4],
         ]
@@ -108,7 +108,7 @@ class ChessAI:
         #     [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0]
         # ]
 
-        # self.rook_scores: list[list[int]] = [
+        # self.rock_scores: list[list[int]] = [
         #     [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
         #     [0.5, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5],
         #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
@@ -146,6 +146,7 @@ class ChessAI:
             "B": self.bishop_scores,
             "R": self.rock_scores,
             "Q": self.queen_scores,
+            # "p": self.pawn_scores,
             "wp": self.white_pawn_scores,
             "bp": self.black_pawn_scores,
         }

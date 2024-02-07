@@ -1,4 +1,5 @@
 import multiprocessing
+import src.Sounds as Sounds
 from src.Theme import Theme
 from src.const import *
 import src.ChessEngine as ChessEngine
@@ -276,7 +277,9 @@ class Board():
         player_clicks = []
 
         ai = ChessAI.ChessAI()
-        return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks, ai
+        sound_manager = Sounds.SoundManager()
+
+        return flags, screen, clock, game_state, valid_moves, square_selected, player_clicks, ai, sound_manager
 
     def handle_key_events(self, event: p.event.Event, game_state: ChessEngine.GameState, flags: dict[str, bool], square_selected: tuple[int], player_clicks: list[tuple[int]], valid_moves: list[Move.Move], thread_process: multiprocessing.Process) -> None:
         """
@@ -491,7 +494,7 @@ class Board():
         direction_col: int = move.end_col - move.start_col
 
         # Calculate the frame count for smooth animation
-        frames_per_square: int = 8
+        frames_per_square: int = 5
         frame_count: int = (abs(direction_row) +
                             abs(direction_col)) * frames_per_square
 
