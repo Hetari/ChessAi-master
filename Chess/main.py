@@ -1,3 +1,4 @@
+import random
 from src.const import *
 import view.Board as Board
 import src.db as db
@@ -13,7 +14,6 @@ def play_music_thread(sound_manager, music_file, loops, volume):
 
 
 def main():
-
     database = db.Database()
     with database:
         global current_game_id
@@ -73,6 +73,7 @@ def main():
         win_sound = threading.Thread(
             target=play_music_thread, args=(sound_manager, win_path, 1, 0.5)
         )
+
         flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_human) or (
             not game_state.white_to_move and is_player_tow_human)
 
@@ -89,7 +90,7 @@ def main():
                 event, game_state, flags, square_selected, player_clicks, valid_moves, move_finder_process)
 
         # Ai move finder logic
-        if not flags["game_over"] and not flags["is_human_turn"] and not flags["move_undone"]:
+        if not flags["game_over"] and not flags["is_human_turn"] and not flags["move_undo"]:
             if not flags["ai_thinking"]:
                 flags["ai_thinking"] = True
                 print("Thinking...")
@@ -113,6 +114,10 @@ def main():
                 if ai_move is None:
                     ai_move = smart_finder.find_random_move(valid_moves)
 
+                if ai_move.is_pawn_promotions:
+                    game_state.promotion_choice = random.choice(
+                        ["Q", "R", "B", "N"])
+
                 game_state.make_move(ai_move)
                 flags["animate"] = True
                 flags["move_made"] = True
@@ -127,7 +132,7 @@ def main():
             valid_moves = game_state.get_valid_moves()
             flags["move_made"] = False
             flags["animate"] = False
-            flags["move_undone"] = False
+            flags["move_undo"] = False
             # print("valid_moves 2: ", len(valid_moves))
 
             if len(game_state.moves_log) != 0 and game_state.moves_log[-1].piece_captured != "--":
