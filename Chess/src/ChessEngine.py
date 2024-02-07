@@ -51,6 +51,7 @@ class GameState(ChessHelper.Helper,
         self.in_check: bool = False
         self.pins: list = []
         self.checks: list = []
+        self.promotion_choice = "Q"
 
         # coordinates for the square where en passant capture is possible
         self.en_passant_possible: tuple = ()
@@ -100,10 +101,8 @@ class GameState(ChessHelper.Helper,
 
         # if pawn promotion, change piece
         if move.is_pawn_promotion:
-            # TODO ask for a piece in UI (Q, R, B, or N)
-            # promoted_piece: str = input("Promote to Q, R, B, or N:").upper()
-            # promoted_piece
-            self.board[move.end_row][move.end_col] = f"{move.piece_moved[0]}Q"
+            self.board[move.end_row][move.end_col] = move.piece_moved[0] + \
+                self.promotion_choice
 
         if move.is_castle_move:
             if move.end_col - move.start_col == 2:

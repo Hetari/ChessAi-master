@@ -8,6 +8,7 @@ import src.Move as Move
 import sys
 import os
 import pygame as p
+from pygame.locals import *
 
 
 class Board():
@@ -370,11 +371,17 @@ class Board():
                     for i in range(len(valid_moves)):
                         if move == valid_moves[i]:
                             # If it's a valid move, make the move in the game state and set the move flag
+                            if valid_moves[i].is_pawn_promotion:
+                                screen = p.display.set_mode((300, 200))
+                                piece = self.ask_pawn_promotion(screen)
+                                game_state.promotion_choice = piece
+                                screen = p.display.set_mode((WIDTH, HEIGHT))
+                                # screen = p.display.set_mode((WIDTH, HEIGHT))
+                            print(valid_moves[i].get_chess_notation())
                             game_state.make_move(valid_moves[i])
                             flags["move_made"] = True
                             flags["animate"] = True
                             square_selected, player_clicks = (), []
-
                     if not flags["move_made"]:
                         player_clicks = [square_selected]
         # if there is not a mouse click event we will return square_selected and player_clicks that passed in the function
@@ -541,3 +548,78 @@ class Board():
                 ))
             p.display.flip()
             clock.tick(60)
+
+    def draw_dropdown(self, screen: p.Surface, options: list[str], dropdown_rect: p.Rect) -> None:
+        """
+        Draw a dropdown menu on the given screen surface.
+
+        Args:
+            screen: The p surface to draw on.
+            options: A list of strings representing the options in the dropdown.
+            dropdown_rect: A p Rect object representing the position and size of the dropdown.
+        Returns:
+            None
+        """
+        # Draw the dropdown background
+        p.draw.rect(screen, (200, 200, 200), dropdown_rect)
+
+        # Draw the options
+        font = p.font.Font(None, 30)
+        text_y = dropdown_rect.y + 10
+
+        for option in options:
+            text_surface = font.render(option, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(
+                midtop=(dropdown_rect.centerx, text_y))
+            screen.blit(text_surface, text_rect)
+            text_y += text_rect.height + 30
+
+    def ask_pawn_promotion(self, screen: p.Surface) -> str:
+        """
+        Display a dropdown menu for pawn promotion options and return the selected option.
+
+        Args:
+            self: the instance of the class
+            screen: the Pygame Surface object to display the dropdown menu on
+
+        Returns:
+            selected_option: the selected pawn promotion option
+        """
+        # Define promotion options and their corresponding keys
+        promotion_options = ['Rook', 'Knight', 'Bishop', 'Queen']
+        promotion_options_key = ['R', 'N', 'B', 'Q']
+
+        # Set the position and size of the dropdown menu
+        promotion_rect = p.Rect(0, 0, 200, 200)
+        promotion_rect.center = (screen.get_width() //
+                                 2, screen.get_height() // 2)
+
+        selected_option = None
+        while selected_option is None:
+            # Fill the screen with white color
+            screen.fill(p.Color(255, 255, 255))
+
+            # Draw the dropdown menu on the screen
+            self.draw_dropdown(screen, promotion_options, promotion_rect)
+
+            # Update the display
+            p.display.flip()
+
+            for event in p.event.get():
+                if event.type == p.QUIT:
+                    p.quit()
+                    sys.exit()
+                elif event.type == p.MOUSEBUTTONDOWN:
+                    # Get the mouse position
+                    mouse_pos = p.mouse.get_pos()
+
+                    # Calculate the relative y-coordinate
+                    relative_y = mouse_pos[1] - promotion_rect.y
+
+                    # Calculate the index of the selected option based on the relative y-coordinate
+                    option_index = relative_y // 50  # Assuming each option has a height of 50 pixels
+
+                    # Check if the selected option index is valid and set the selected_option
+                    if 0 <= option_index < len(promotion_options_key):
+                        selected_option = promotion_options_key[option_index]
+        return selected_option
