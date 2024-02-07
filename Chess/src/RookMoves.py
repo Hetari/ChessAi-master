@@ -1,9 +1,9 @@
 import src.Move as Move
 
 
-class Rock():
-    def rock_moves(self, row, col, moves):
-        piece_pinned, pin_direction = self.check_rock_pin(self.pins, row, col)
+class rook():
+    def rook_moves(self, row, col, moves):
+        piece_pinned, pin_direction = self.check_rook_pin(self.pins, row, col)
 
         # Define directions for possible rook moves
         directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
@@ -33,7 +33,7 @@ class Rock():
                     else:  # friendly piece
                         break
 
-    def check_rock_pin(self, pins, row, col):
+    def check_rook_pin(self, pins, row, col):
         piece_pinned = False
         pin_direction = ()
         for i in range(len(pins) - 1, -1, -1):

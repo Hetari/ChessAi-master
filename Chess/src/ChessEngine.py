@@ -1,7 +1,7 @@
 import src.Castle as Castle
 import src.Move as Move
 import src.PawnMoves as PawnMoves
-import src.RockMoves as RockMoves
+import src.RookMoves as RookMoves
 import src.KnightMoves as KnightMoves
 import src.BishopMoves as BishopMoves
 import src.KingMoves as KingMoves
@@ -10,7 +10,7 @@ import src.ChessHelper as ChessHelper
 
 class GameState(ChessHelper.Helper,
                 PawnMoves.Pawn,
-                RockMoves.Rock,
+                RookMoves.Rook,
                 KnightMoves.Knight,
                 BishopMoves.Bishop,
                 KingMoves.King,
@@ -30,7 +30,7 @@ class GameState(ChessHelper.Helper,
 
         # Get the possible moves for each piece
         self.move_functions: dict[int, callable] = {
-            "R": self.get_rock_moves,
+            "R": self.get_rook_moves,
             "N": self.get_knight_moves,
             "B": self.get_bishop_moves,
             "Q": self.get_queen_moves,
@@ -409,7 +409,7 @@ class GameState(ChessHelper.Helper,
         """
         self.pawn_moves(row, col, moves)
 
-    def get_rock_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
+    def get_rook_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
         Generates possible moves for a rook at the given row and column and adds them to the moves list.
 
@@ -421,7 +421,7 @@ class GameState(ChessHelper.Helper,
         Returns:
             None
         """
-        self.rock_moves(row, col, moves)
+        self.rook_moves(row, col, moves)
 
     def get_knight_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """
@@ -464,9 +464,9 @@ class GameState(ChessHelper.Helper,
             None
         """
         # self.bishop_moves(row, col, moves)
-        # self.rock_moves(row, col, moves)
+        # self.rook_moves(row, col, moves)
         self.bishop_moves(row, col, moves)
-        self.rock_moves(row, col, moves)
+        self.rook_moves(row, col, moves)
 
     def get_king_moves(self, row: int, col: int, moves: list[Move.Move]) -> None:
         """

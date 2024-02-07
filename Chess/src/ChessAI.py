@@ -53,7 +53,7 @@ class ChessAI:
             [1, 1, 1, 3, 1, 1, 1, 1],
         ]
 
-        self.rock_scores: list[list[int]] = [
+        self.rook_scores: list[list[int]] = [
             [4, 3, 4, 4, 4, 4, 3, 4],
             [4, 4, 4, 4, 4, 4, 4, 4],
             [1, 1, 2, 3, 3, 2, 1, 1],
@@ -108,7 +108,7 @@ class ChessAI:
         #     [0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0]
         # ]
 
-        # self.rock_scores: list[list[int]] = [
+        # self.rook_scores: list[list[int]] = [
         #     [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
         #     [0.5, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5],
         #     [0.0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.0],
@@ -144,7 +144,7 @@ class ChessAI:
         self.piece_position_scores: dict[str, callable] = {
             "N": self.knight_scores,
             "B": self.bishop_scores,
-            "R": self.rock_scores,
+            "R": self.rook_scores,
             "Q": self.queen_scores,
             # "p": self.pawn_scores,
             "wp": self.white_pawn_scores,
