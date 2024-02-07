@@ -89,6 +89,19 @@ class Move:
     def __eq__(self, other: object) -> bool:
         return self.move_id == other.move_id if isinstance(other, Move) else False
 
+    def __json__(self):
+        return {
+            "start_row": self.start_row,
+            "start_col": self.start_col,
+            "end_row": self.end_row,
+            "end_col": self.end_col,
+            "piece_moved": self.piece_moved,
+            "piece_captured": self.piece_captured,
+            "is_pawn_promotion": self.is_pawn_promotion,
+            "is_en_passant_move": self.is_en_passant_move,
+            "is_castle_move": self.is_castle_move,
+            "move_id": self.move_id
+        }
     # def __hash__(self):
     #     # Implement a hash based on the attributes
     #     return hash((self.move_id))

@@ -30,8 +30,7 @@ class Database:
             CREATE TABLE IF NOT EXISTS logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 game_id INTEGER NOT NULL,
-                player TEXT NOT NULL,
-                move TEXT NOT NULL,
+                moves TEXT NOT NULL,
                 FOREIGN KEY(game_id) REFERENCES games(id)
             )
         """)
@@ -46,15 +45,15 @@ class Database:
             UPDATE games SET winner = ? WHERE id = ?
         """, (winner, game_id))
 
+    def insert_moves_log(self, game_id, moves):
+        self.cursor.execute("""
+            INSERT INTO logs(game_id, moves) VALUES (?, ?)
+        """, (game_id, moves))
+
     def get_game_id(self):
         return self.cursor.execute("""
             SELECT MAX(id) FROM games
         """).fetchone()[0]
-
-    def insert_into_logs(self, game_id, player, move):
-        self.cursor.execute("""
-            INSERT INTO logs(game_id, player, move) VALUES (?, ?, ?)
-        """, (game_id, player, move))
 
     def commit(self):
         self.db_connection.commit()

@@ -1,19 +1,25 @@
-import threading
 from src.const import *
 import view.Board as Board
+import src.db as db
+import src.ChessEngine as ChessEngine
 import pygame as p
 import multiprocessing
-import src.db as db
+import json
+import threading
+
+
+def play_music_thread(sound_manager, music_file, loops, volume):
+    sound_manager.play_music(music_file, loops, volume)
 
 
 def main():
-    def play_music_thread(sound_manager, music_file, loops, volume):
-        sound_manager.play_music(music_file, loops, volume)
 
     database = db.Database()
     with database:
+        global current_game_id
         database.create_tables()
         database.create_new_game()
+        current_game_id = database.get_game_id()
 
     board = Board.Board()
 
@@ -48,7 +54,7 @@ def main():
     )
 
     is_player_one_human: bool = True
-    is_player_tow_human: bool = False
+    is_player_tow_human: bool = True
 
     while flags["running"]:
         capture_sound = threading.Thread(
@@ -123,12 +129,6 @@ def main():
             flags["animate"] = False
             flags["move_undone"] = False
             # print("valid_moves 2: ", len(valid_moves))
-            database = db.Database()
-            with database:
-                if len(game_state.moves_log) != 0:
-                    current_game_id = database.get_game_id()
-                    database.insert_into_logs(
-                        current_game_id, "Black" if game_state.white_to_move else "White", game_state.moves_log[-1].get_chess_notation())
 
             if len(game_state.moves_log) != 0 and game_state.moves_log[-1].piece_captured != "--":
                 capture_sound.start()
@@ -138,32 +138,41 @@ def main():
                 move_sound.start()
 
         if game_state.check_mate:
+            lose_sound.start() if game_state.white_to_move else win_sound.start()
+            serialized_list = json.dumps(
+                game_state.moves_log,
+                default=lambda obj: obj.__json__()
+            )
+            play_again, square_selected, player_clicks = board.show_modal(
+                screen, p, "Check mate! press `z` to undo move", game_state, flags
+            )
+
             database = db.Database()
             with database:
-                game_id = database.get_game_id()
                 database.update_winner_into_game(
-                    "Black" if game_state.white_to_move else "White", game_id)
-                if game_state.white_to_move:
-                    lose_sound.start()
+                    "Black" if game_state.white_to_move else "White", current_game_id
+                )
+
+                print(f"serialized_list: {serialized_list}")
+                print(f"current_game_id: {current_game_id}")
+                database.insert_moves_log(
+                    current_game_id,
+                    serialized_list
+                )
+
+                if play_again:
+                    # restart the game
+                    game_state, valid_moves, square_selected, player_clicks, flags = board.reload_game(
+                        flags)
+                    database.create_new_game()
+
                 else:
-                    win_sound.start()
-
-            play_again, square_selected, player_clicks = board.show_modal(
-                screen, p, "Check mate! press `z` to undo move", game_state, flags)
-
-            if play_again:
-                # restart the game
-                game_state, valid_moves, square_selected, player_clicks, flags = board.reload_game(
-                    flags)
-
-            else:
-                board.handle_quit(flags)
+                    board.handle_quit(flags)
 
         if game_state.stale_mate:
             database = db.Database()
             with database:
-                game_id = database.get_game_id()
-                database.update_winner_into_game("Stalemate", game_id)
+                database.update_winner_into_game("Stalemate", current_game_id)
 
         board.draw_game_state(screen, game_state, valid_moves, square_selected)
         clock.tick(MAX_FPS)
