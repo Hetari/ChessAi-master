@@ -54,7 +54,7 @@ def main():
     )
 
     is_player_one_human: bool = True
-    is_player_tow_human: bool = False
+    is_player_tow_human: bool = True
 
     while flags["running"]:
         capture_sound = threading.Thread(
@@ -74,7 +74,7 @@ def main():
             target=play_music_thread, args=(sound_manager, win_path, 1, 0.5)
         )
 
-        flags["is_human_turn"]: bool = (game_state.white_to_move and is_player_one_human) or (
+        flags["is_human_turn"] = (game_state.white_to_move and is_player_one_human) or (
             not game_state.white_to_move and is_player_tow_human)
 
         for event in p.event.get():
@@ -142,10 +142,7 @@ def main():
 
         if game_state.check_mate:
             lose_sound.start() if game_state.white_to_move else win_sound.start()
-            serialized_list = json.dumps(
-                game_state.moves_log,
-                default=lambda obj: obj.__json__()
-            )
+
             play_again, square_selected, player_clicks = board.show_modal(
                 screen, p, "Black" if game_state.white_to_move else "White" +
                 " wins", game_state, flags
@@ -153,15 +150,6 @@ def main():
 
             database = db.Database()
             with database:
-                database.update_winner_into_game(
-                    "Black" if game_state.white_to_move else "White", current_game_id
-                )
-
-                database.insert_moves_log(
-                    current_game_id,
-                    serialized_list
-                )
-
                 if play_again:
                     # restart the game
                     game_state, valid_moves, square_selected, player_clicks, flags = board.reload_game(
@@ -178,9 +166,26 @@ def main():
             board.show_modal(
                 screen, p, "Stalemate...", game_state, flags
             )
-        board.draw_game_state(screen, game_state, valid_moves, square_selected)
-        clock.tick(MAX_FPS)
-        p.display.flip()
+        if flags["running"]:
+            board.draw_game_state(screen, game_state,
+                                  valid_moves, square_selected)
+            clock.tick(MAX_FPS)
+            p.display.flip()
+
+    serialized_list = json.dumps(
+        game_state.moves_log,
+        default=lambda obj: obj.__json__()
+    )
+    database = db.Database()
+    with database:
+        database.update_winner_into_game(
+            "Black" if game_state.white_to_move else "White", current_game_id
+        )
+
+        database.insert_moves_log(
+            current_game_id,
+            serialized_list
+        )
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 from src.Theme import Theme
 
 
-class Config():
+class Config:
     """
     Represents the configuration for a chess game.
 

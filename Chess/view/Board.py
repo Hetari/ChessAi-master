@@ -389,7 +389,6 @@ class Board():
         flags["running"] = False
         flags["game_over"] = False
         p.quit()
-        sys.exit()
 
     def reload_game(self, flags):
         game_state = ChessEngine.GameState()
@@ -448,7 +447,6 @@ class Board():
             for event in p.event.get():
                 if event.type == p.QUIT:
                     p.quit()
-                    sys.exit()
 
                 elif event.type == p.KEYDOWN:
                     if event.key == p.K_z:
@@ -604,10 +602,7 @@ class Board():
             p.display.flip()
 
             for event in p.event.get():
-                if event.type == p.QUIT:
-                    p.quit()
-                    sys.exit()
-                elif event.type == p.MOUSEBUTTONDOWN:
+                if event.type == p.MOUSEBUTTONDOWN:
                     # Get the mouse position
                     mouse_pos = p.mouse.get_pos()
 

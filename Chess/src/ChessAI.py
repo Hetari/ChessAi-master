@@ -10,7 +10,7 @@ class ChessAI:
     def __init__(self) -> None:
         self.CHECKMATE: int = 1000
         self.STALEMATE: int = 0
-        self.DEPTH: int = 1
+        self.DEPTH: int = 3
         self.piece_score: dict[str, int] = {
             "K": 0,
             "Q": 9,

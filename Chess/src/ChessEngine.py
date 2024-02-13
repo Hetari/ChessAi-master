@@ -300,7 +300,6 @@ class GameState(ChessHelper.Helper,
                     # Check if the piece is an enemy
                     if self.board[i][j][0] == enemy_color:
                         enemy_count += 1
-            print(f"enemy_count: {enemy_count}")
             if enemy_count <= 2:
                 self.stale_mate = True
 
