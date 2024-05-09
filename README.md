@@ -1,8 +1,10 @@
 # ChessAi-master
 
+<img src="./header.jpg" alt="Chess" style="width: 100%;" />
+
 **ChessAi-master** is a Python project aimed at developing a chess-playing artificial intelligence using various algorithms and techniques. This project provides a platform for experimenting with different approaches to chess AI and understanding the complexities involved in creating an effective chess-playing program.
 
-This project is created step by step following Eddie Sharick's [YouTube tutorial series](https://www.youtube.com/playlist?list=PLBwF487qi8MGU81nDGaeNE1EnNEPYWKY_). 
+This project is created step by step following Eddie Sharick's [YouTube tutorial series](https://www.youtube.com/playlist?list=PLBwF487qi8MGU81nDGaeNE1EnNEPYWKY_).
 
 ## Features
 
@@ -22,21 +24,21 @@ To use ChessAi-master, follow these steps:
 
 1. Clone the repository to your local machine:
 
-    ```bash
-    git clone https://github.com/Hetari/ChessAi-master.git
-    ```
+   ```bash
+   git clone https://github.com/Hetari/ChessAi-master.git
+   ```
 
 2. Navigate to the project directory:
 
-    ```bash
-    cd ChessAi-master
-    ```
+   ```bash
+   cd ChessAi-master
+   ```
 
 3. Install the required dependencies:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
@@ -55,4 +57,3 @@ Contributions to ChessAi-master are welcome! If you'd like to contribute to the 
 ## Acknowledgments
 
 ChessAi-master is inspired by various chess AI projects and algorithms available in the open-source community. We extend our gratitude to Eddie Sharick for his excellent tutorial series, which served as a guide for the development of this project.
-
